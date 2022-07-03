@@ -13,6 +13,7 @@ class CollapseColumn(tables.Column):
     def __init__(
         self, *args, label='Show', label_accessor=None, label_extra='', hyperlink=False, href_attr=None,
         iterable=False, str_attr=None, order_by=None, fkwargs=None, property_attr=None, dictionary=False,
+        nowrap=True, li_style=None,
         **kwargs
     ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
         super().__init__(*args, **kwargs)
@@ -45,6 +46,12 @@ class CollapseColumn(tables.Column):
         else:
             return getattr(obj, self.href_attr)
 
+    def get_li_style(self):
+        ''' method returns the style to be applied to the li tags '''
+        if self.li_style:
+            return self.li_style
+        return 'style="white-space: nowrap;"' if self.nowrap else ''
+
     def render(self, value, record):
         if self.property_attr:
             value = getattr(record, self.property_attr)
@@ -71,9 +78,11 @@ class CollapseColumn(tables.Column):
             if len(value) == 0:
                 label = ''
             val = ''
+            style = self.get_li_style()
             for obj in value:
                 obj_val = str(obj) if self.str_attr == None else getattr(
                     obj, self.str_attr)
+                val = val + f'<li {style}>{obj_val}</li>'
                 if self.hyperlink:
                     href = self.get_href(obj)
                     obj_val = f'<a href={href}>{obj_val}</a>'
