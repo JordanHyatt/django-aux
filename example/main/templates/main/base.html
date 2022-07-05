@@ -4,12 +4,16 @@
 
 {% block content %}{% endblock %}
 
-{% block sidebar %}
+{% block sidebar %}    
+
 <ul class="list-unstyled components">
-    <h4>Scheduling Menu</h4>
+    <h4>Main Menu</h4>
     <h5>Select a function</h5>
     <li>
-        <a href="#">Home</a>
+        <a href="{% url 'main-home' %}">Home</a>
+    </li>
+    <li>
+        <a href="{% url 'person-lookup' %}">Person Lookup</a>
     </li>
 </ul>
 {% endblock %}
