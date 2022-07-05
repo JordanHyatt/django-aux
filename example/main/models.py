@@ -10,6 +10,7 @@ class Person(models.Model):
     last_name = models.CharField(max_length=100, null=True)
     first_name = models.CharField(max_length=100, null=True)
     middle_name = models.CharField(max_length=100, null=True, blank=True)
+    salary = models.FloatField(null=True)
 
     @property
     def full_name(self):
@@ -38,5 +39,15 @@ class Person(models.Model):
         obj, c = cls.objects.get_or_create(last_name=ln, first_name=fn, middle_name=mn)
         return obj
 
+    def get_salary(self):
+        ''' Method to get a random salary if none '''
+        if self.salary: return
+        self.salary = round(random.uniform(15_000.00, 200_000.00), 2)
+
+    def save(self, *args, **kwargs):
+        self.get_salary()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.full_name
+
