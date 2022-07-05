@@ -6,9 +6,27 @@ import json
 from django.utils.html import format_html
 
 
+class RoundNumberColumn(tables.Column):
+    ''' A column that will round a number and add commas for display '''
+
+    def __init__(self, *args, money=False, round_to=2, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.money = money
+        self.round_to = round_to
+    
+    def render(self, value, record):
+        val = round(value, self.round_to)
+        if self.round_to <= 0:
+            rstr = f'{val:,.0f}'
+        else:
+            rstr = f'{val:,.{self.round_to}f}'
+        if self.money: 
+            rstr = '$' + rstr
+        return rstr
+
+
 class CollapseColumn(tables.Column):
-    ''' Column is meant for columns that have lots of data in each cell to make 
-    viewing cleaner'''
+    ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
 
     def __init__(
         self, *args, label='Show', label_accessor=None, label_extra='', hyperlink=False, href_attr=None,
@@ -26,6 +44,8 @@ class CollapseColumn(tables.Column):
         self.iterable = iterable
         self.str_attr = str_attr
         self.order_by = order_by
+        self.nowrap = nowrap
+        self.li_style = li_style
         self.fkwargs = fkwargs
         self.property_attr = property_attr
         self.dictionary = dictionary
