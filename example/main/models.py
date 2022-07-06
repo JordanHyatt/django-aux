@@ -11,6 +11,7 @@ class Person(models.Model):
     first_name = models.CharField(max_length=100, null=True)
     middle_name = models.CharField(max_length=100, null=True, blank=True)
     salary = models.FloatField(null=True)
+    adjectives = models.ManyToManyField('PersonAdjective')
 
     @property
     def full_name(self):
@@ -44,10 +45,34 @@ class Person(models.Model):
         if self.salary: return
         self.salary = round(random.uniform(15_000.00, 200_000.00), 2)
 
+    def get_adjectives(self):
+        ''' Method to randomly assign person adjectives '''
+        self.adjectives.clear()
+        self.adjectives.add(*PersonAdjective.objects.order_by('?')[:3])
+
     def save(self, *args, **kwargs):
         self.get_salary()
         super().save(*args, **kwargs)
+        self.get_adjectives()
 
     def __str__(self):
         return self.full_name
 
+
+class PersonAdjective(models.Model):
+    ''' Instance of this class represents an adjective that could describe a person '''
+    DEFAULTS = ['nice', 'mean','funny', 'serious', 'tall', 'short']
+
+    word = models.CharField(max_length=100, unique=True)
+    definition = models.CharField(max_length=500, null=True, blank=True)
+
+    @classmethod
+    def create_defaults(cls):
+        for word in cls.DEFAULTS:
+            cls.objects.get_or_create(word=word)
+
+    def get_absolute_url(self):
+        return '#'
+
+    def __str__(self):
+        return f'{self.word}'

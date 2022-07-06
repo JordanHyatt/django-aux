@@ -103,10 +103,11 @@ class CollapseColumn(tables.Column):
             style = self.get_li_style()
             for obj in value:
                 obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
-                val = val + f'<li {style}>{obj_val}</li>'
                 if self.hyperlink:
+                    print('hyperlinking')
                     href = self.get_href(obj)
-                    val = f'<a href={href}>{val}</a>'
+                    obj_val = f'<a href={href}>{obj_val}</a>'
+                val = val + f'<li {style}>{obj_val}</li>'
         if label != '':
             rval = (
                 f'''
