@@ -1,7 +1,8 @@
 import django_tables2 as tables
 from django_tables2 import A
 import random
-from pandas import isna
+from pandas import isna, Series
+from math import ceil
 import json
 from django.utils.html import format_html
 
@@ -9,10 +10,11 @@ from django.utils.html import format_html
 class RoundNumberColumn(tables.Column):
     ''' A column that will round a number and add commas for display '''
 
-    def __init__(self, *args, money=False, round_to=2, **kwargs):
+    def __init__(self, *args, money=False, round_to=2, prefix='', **kwargs):
         super().__init__(*args, **kwargs)
         self.money = money
         self.round_to = round_to
+        self.prefix = prefix
     
     def render(self, value, record):
         val = round(value, self.round_to)
@@ -22,7 +24,7 @@ class RoundNumberColumn(tables.Column):
             rstr = f'{val:,.{self.round_to}f}'
         if self.money: 
             rstr = '$' + rstr
-        return rstr
+        return self.prefix + rstr
 
 
 class CollapseColumn(tables.Column):
@@ -119,3 +121,55 @@ class CollapseColumn(tables.Column):
             return format_html(rval)
         else:
             return ''
+
+
+def get_background(value, record, table, bound_column):
+    val = (str(value).split('/')[0]).replace(',','')
+    val = float(val)
+    print(value,record,bound_column)
+    vals = [getattr(row, bound_column.name) for row in table.data]
+    print(vals)
+    ser = Series(vals).fillna(0)
+    max = ser.max()
+    if max == 0:
+        w = 0
+    else:
+        w = 100*val/max
+    style_str = f'background:linear-gradient(90deg, {bound_column.column.color} {w}%, transparent {w}%)'
+    return style_str
+class BarChartColumn(tables.Column):
+    def __init__(
+        self, *args,
+        round_to=0,
+        color='lightgrey',
+        goal_attr=None,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.round_to = round_to
+        self.color = color
+        self.goal_attr = goal_attr
+        td_dict = self.attrs.get('td', {})
+        td_dict['style'] = get_background
+        self.attrs['td'] = td_dict
+
+    def render(self, value, record):
+        if value==None:
+            return
+        value = round(value, self.round_to)
+        if self.round_to > 0:
+            rval = f'{value:,}'
+        else:
+            rval = f'{value:,.0f}'
+
+        if self.goal_attr:
+            goal = getattr(record, self.goal_attr, '')
+            goal = ceil(goal)
+            rval = str(rval) + f'/{goal}'
+        return rval
+
+    def value(self, value):
+        value = str(value).split('/')[0]
+        if not str(value).isnumeric():
+            value = 0
+        return value
