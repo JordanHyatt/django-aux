@@ -173,3 +173,39 @@ class BarChartColumn(tables.Column):
         if not str(value).isnumeric():
             value = 0
         return value
+
+
+class LastChangeDateColumn(tables.Column):
+    ''' This Column can be used with tables that have a model defined and 
+    are using django simple-history to track changes'''
+
+    def render(self, record):
+        if not hasattr(record, 'history'):
+            return None
+        else:
+            return record.history.first().history_date
+
+
+class LastChangeUserColumn(tables.Column):
+    ''' This Column can be used with tables that have a model defined and 
+    are using django simple-history to track changes'''
+
+    def render(self, record):
+        if not hasattr(record, 'history'):
+            return None
+        else:
+            user = record.history.first().history_user
+            if user == None:
+                return 'Automated'
+            return user.employee
+
+
+class LastChangeTypeColumn(tables.Column):
+    ''' This Column can be used with tables that have a model defined and 
+    are using django simple-history to track changes'''
+
+    def render(self, record):
+        if not hasattr(record, 'history'):
+            return None
+        else:
+            return record.history.first().history_type

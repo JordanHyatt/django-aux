@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+
 class CheckOverlapMixin:
     ''' 
         This mixin adds cleaning functionality to a model that will not allow a range overlap defined by two attributes.
