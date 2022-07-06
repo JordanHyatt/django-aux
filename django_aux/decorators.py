@@ -2,7 +2,7 @@
 def logtest(logger_method):
     def wrap(test_method):
         def inner(instance):
-            logger_method.info(f'Running {test_method.__name__}')
+            logger_method(f'Running {test_method.__name__}')
             test_method(instance)
         return inner
     return wrap
