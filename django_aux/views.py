@@ -2,8 +2,13 @@ from django.shortcuts import render
 from django_tables2 import SingleTableMixin
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
-from pandas import isna
-
+from pandas import isna, DataFrame as DF, to_datetime
+import inspect
+from django.contrib import messages
+from django.db.models import F
+from django_pandas.io import read_frame
+import plotly.express as px
+from plotly import offline
 
 class SaveFilterMixin(SingleTableMixin):
     """ This Mixin Can be used with a FilterView SingleTable in order to save
@@ -219,7 +224,7 @@ class SinglePlotMixin:
         if df.empty:
             self.plot_df = df
             return
-        df.dtg_ = pd.to_datetime(df.dtg_)
+        df.dtg_ = to_datetime(df.dtg_)
 
         period_dict = {
             'day': {'pcode': 'd', 'date_format': "%Y-%m-%d"},
@@ -292,7 +297,7 @@ class SinglePlotMixin:
         fig.update_layout(
             xaxis_title=x_verbose, yaxis_title=y_verbose
         )
-        return plotly.offline.plot(fig, auto_open=False, output_type="div")
+        return offline.plot(fig, auto_open=False, output_type="div")
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
