@@ -36,7 +36,6 @@ class SaveFilterMixin(SingleTableMixin):
         else:
             return kwargs
 
-
 class InlineFormsetMixin:
     formset_helper = None
     form_helper = None
@@ -86,7 +85,6 @@ class InlineFormsetMixin:
         else:
             return super().get_success_url()
 
-
 class SaveFormMixin:
     """ This Mixin Can be used with any view that uses a form mixin to
     save a users form selection even if they navigate away from the page"""
@@ -114,7 +112,6 @@ class SaveFormMixin:
             self.request.session[f'{self.view_name}_form_initial'] = form.data
 
         return form
-
 
 class RedirectPrevMixin:
     ''' This mixin will redirect user to the page they came from if 
@@ -167,7 +164,26 @@ class RedirectPrevMixin:
         else:
             return super().post(request, *args, **kwargs)
 
+class CheckGroupPermMixin:
+    ''' This mixin will extend the test_func of any view using
+    the UserPassesTestMixin to check the requesting users group membership '''
+    allowed_groups = [] #Overwrite, or append, to this with the name of the required django groups
+    allow_superusers = True #If true then a django superuser will be granted access regardless of group membership
 
+    def test_func(self):
+        ''' an extended test_func that checks group membership '''
+        #First the parent class' test_func must pass
+        if super().test_func():
+            #Test 1: Is the user a super user? (If allowed)
+            t1 = False if not self.allow_superusers else self.request.user.is_superuser
+            #Test 2: Does the user belong to an allowed group?
+            user_groups = self.request.user.groups.all().values_list('name',flat=True)
+            intersect = set(user_groups).intersection(self.allowed_groups)
+            t2 = intersect > 0
+            #If either passed the user can proceed
+            return t1 or t2
+        #Parent class test_func tests have not passed
+        return False    
 
 class SinglePlotMixin:
     ''' This mixin creates a potly figure based on a FilterView that is using
