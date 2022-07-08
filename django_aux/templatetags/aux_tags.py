@@ -19,3 +19,8 @@ def has_rows(table):
 def has_items(container):
     ''' A custom template tag that takes an iterable returns true if len > 0 '''
     return True if len(container) > 0 else False
+
+@register.filter
+def render_class_name(obj):
+    ''' A custom template tag that returns the object's class' name '''
+    return obj.__class__.__name__
