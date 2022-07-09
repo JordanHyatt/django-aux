@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django_tables2 import SingleTableMixin
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
@@ -10,7 +9,6 @@ from django_pandas.io import read_frame
 from django.contrib.auth.mixins import UserPassesTestMixin
 import plotly.express as px
 from plotly import offline
-
 
 class SaveFilterMixin(SingleTableMixin):
     """ This Mixin Can be used with a FilterView SingleTable in order to save
@@ -185,7 +183,6 @@ class CheckGroupPermMixin(UserPassesTestMixin):
         if len(intersect) > 0:
             return True
         return False
-    
 
 class SinglePlotMixin:
     ''' This mixin creates a potly figure based on a FilterView that is using
