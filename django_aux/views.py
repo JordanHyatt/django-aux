@@ -7,8 +7,10 @@ import inspect
 from django.contrib import messages
 from django.db.models import F
 from django_pandas.io import read_frame
+from django.contrib.auth.mixins import UserPassesTestMixin
 import plotly.express as px
 from plotly import offline
+
 
 class SaveFilterMixin(SingleTableMixin):
     """ This Mixin Can be used with a FilterView SingleTable in order to save
@@ -164,7 +166,7 @@ class RedirectPrevMixin:
         else:
             return super().post(request, *args, **kwargs)
 
-class CheckGroupPermMixin:
+class CheckGroupPermMixin(UserPassesTestMixin):
     ''' This mixin will extend the test_func of any view using
     the UserPassesTestMixin to check the requesting users group membership '''
     allowed_groups = [] #Overwrite, or append, to this with the name of the required django groups
@@ -173,17 +175,17 @@ class CheckGroupPermMixin:
     def test_func(self):
         ''' an extended test_func that checks group membership '''
         #First the parent class' test_func must pass
-        if super().test_func():
-            #Test 1: Is the user a super user? (If allowed)
-            t1 = False if not self.allow_superusers else self.request.user.is_superuser
-            #Test 2: Does the user belong to an allowed group?
-            user_groups = self.request.user.groups.all().values_list('name',flat=True)
-            intersect = set(user_groups).intersection(self.allowed_groups)
-            t2 = intersect > 0
-            #If either passed the user can proceed
-            return t1 or t2
-        #Parent class test_func tests have not passed
-        return False    
+        if super().test_func() == False: return False
+        #Test 1: Is the user a super user? (If allowed)
+        if self.allow_superusers and self.request.user.is_superuser:
+            return True
+        #Test 2: Does the user belong to an allowed group?
+        user_groups = self.request.user.groups.all().values_list('name',flat=True)
+        intersect = set(user_groups).intersection(self.allowed_groups)
+        if len(intersect) > 0:
+            return True
+        return False
+    
 
 class SinglePlotMixin:
     ''' This mixin creates a potly figure based on a FilterView that is using
