@@ -1,0 +1,18 @@
+{% extends extend_str %}
+{% load aux_tags %}
+
+{% block content %}
+
+<form method="post">{% csrf_token %}
+    <p>
+    <h4>Are you sure you want to delete this "{{ object.__class__.__name__ }}" instance.?</h4>
+    <br>
+    <h5><b> {{ object }}</b></h5>
+    <br>
+    This cannot be undone.
+    </p>
+    <input class="btn btn-primary" type="submit" value="Confirm">
+    <input class="btn btn-primary btn-warning" type="submit" name="cancel" value="Cancel">
+</form>
+
+{% endblock content %}
