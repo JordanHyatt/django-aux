@@ -6,4 +6,5 @@ urlpatterns = [
     path("", HomePageView.as_view(), name="main-home"),
 
     path("person-lookup", PersonLookup.as_view(), name="person-lookup"),
+    path("person-delete/<int:pk>", PersonDelete.as_view(), name="person-delete"),
 ]
