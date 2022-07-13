@@ -74,7 +74,11 @@ class CollapseColumn(tables.Column):
             rval = A(self.label_accessor).resolve(record)
         else:
             rval = self.label
-        if isna(value):
+        try:
+            null_value = isna(value)
+        except ValueError:
+            null_value = False
+        if null_value:
             return ''     
         elif self.iterable:
             if len(value) == 0:
