@@ -4,6 +4,11 @@ import names
 import random
 
 
+class Organization(models.Model):
+    ''' Intance of this class represents a generic organization '''
+
+
+
 class Person(models.Model):
     ''' Instance of this model represents a human being '''
     uuid = models.UUIDField(default = uuid.uuid4, editable=False)
