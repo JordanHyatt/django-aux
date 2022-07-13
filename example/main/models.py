@@ -12,11 +12,22 @@ class Person(models.Model):
     middle_name = models.CharField(max_length=100, null=True, blank=True)
     salary = models.FloatField(null=True)
     adjectives = models.ManyToManyField('PersonAdjective')
+    
+    @property
+    def attr_dict(self):
+        d = self.__dict__
+        d.pop('_state')
+        return d
 
     @property
     def full_name(self):
         mn = '' if self.middle_name==None else self.middle_name
         return f'{self.first_name} {mn} {self.last_name}'
+
+    @property
+    def long_text(self):
+        msg = """ First I was afraid, I was petrified...."""
+        return msg
 
     @classmethod
     def generate_random_people(cls, wipe_table=False, n=10):
