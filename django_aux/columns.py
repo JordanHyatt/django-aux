@@ -65,6 +65,10 @@ class CollapseColumn(tables.Column):
         self.property_attr = property_attr
         self.dictionary = dictionary
 
+    @staticmethod
+    def value_length(value):
+        pass
+
     def get_label(self, value=None, record=None):
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
@@ -72,8 +76,9 @@ class CollapseColumn(tables.Column):
             rval = self.label
         if isna(value):
             return ''     
-        elif len(value)==0:
-            return ''            
+        elif self.iterable:
+            if len(value) == 0:
+                return ''            
         return str(rval) + self.label_extra
 
     def get_href(self, obj):

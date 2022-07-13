@@ -6,12 +6,27 @@ import random
 
 class Organization(models.Model):
     ''' Intance of this class represents a generic organization '''
+    DEFAULTS = [
+        ('US','Army'), ('US','Marines'), ('US','Air Force'), ('US','Navy'), 
+        ('GB','British Army'), ('GB','Royal Marines'), ('GB','Royal Air Force'), ('GB','Royal Navy'),
+    ]
+    uuid = models.UUIDField(default = uuid.uuid4, editable=False)
+    name = models.CharField(max_length=250)
+    country_code = models.CharField(max_length=5, null=True)
 
+    @classmethod
+    def create_defaults(cls):
+        for cc, name in cls.DEFAULTS:
+            cls.objects.update_or_create(name=name, country_code=cc)
+    
+    def __str__(self):
+        return f'{self.country_code} {self.name}'
 
 
 class Person(models.Model):
     ''' Instance of this model represents a human being '''
     uuid = models.UUIDField(default = uuid.uuid4, editable=False)
+    org = models.ForeignKey('Organization', null=True, blank=True, on_delete=models.SET_NULL)
     last_name = models.CharField(max_length=100, null=True)
     first_name = models.CharField(max_length=100, null=True)
     middle_name = models.CharField(max_length=100, null=True, blank=True)
@@ -66,8 +81,17 @@ class Person(models.Model):
         self.adjectives.clear()
         self.adjectives.add(*PersonAdjective.objects.order_by('?')[:3])
 
+    def get_org(self):
+        ''' Method to random derive org is None '''
+        if self.org != None:
+            return
+        if Organization.objects.count() == 0:
+            Organization.create_defaults()
+        self.org = Organization.objects.order_by('?').first()
+        
     def save(self, *args, **kwargs):
         self.get_salary()
+        self.get_org()
         super().save(*args, **kwargs)
         self.get_adjectives()
 
