@@ -65,7 +65,7 @@ class CollapseColumn(tables.Column):
         self.property_attr = property_attr
         self.dictionary = dictionary
 
-    def get_label(self, value, record):
+    def get_label(self, value=None, record=None):
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
@@ -93,16 +93,16 @@ class CollapseColumn(tables.Column):
         if self.property_attr:
             value = getattr(record, self.property_attr)
         if self.dictionary:
-            val = self.get_dictionary_val(value)        
+            val = self.get_dictionary_val(value=value)        
         elif self.iterable == False:
-            val = self.get_noniterable_val(value, record)
+            val = self.get_noniterable_val(value=value, record=record)
         else: 
             val = self.get_iterable_val(value)
-        return self.final_render(value, record, val)
+        return self.final_render(value=value, record=record, val=val)
    
     def final_render(self, value, record, val):
         randnum = random.randint(1, 1_000_000_000)
-        label = self.get_label(value, record)
+        label = self.get_label(value=value, record=record)
         if label != '':
             rval = (
                 f'''
@@ -153,6 +153,7 @@ class CollapseColumn(tables.Column):
             index=False, justify='left', header=False
         )
         return f'<div style={self.get_style()}>{df_html}</div>'
+
 
 def get_background(value, record, table, bound_column):
     val = (str(value).split('/')[0]).replace(',','')
