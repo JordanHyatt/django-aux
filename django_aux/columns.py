@@ -65,23 +65,15 @@ class CollapseColumn(tables.Column):
         self.property_attr = property_attr
         self.dictionary = dictionary
 
-    @staticmethod
-    def value_length(value):
-        pass
-
     def get_label(self, value=None, record=None):
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
             rval = self.label
-        try:
-            null_value = isna(value)
-        except ValueError:
-            null_value = False
-        if null_value:
+        if value in [None, {}]:
             return ''     
         elif self.iterable:
-            if len(value) == 0:
+            if len(value)==0:
                 return ''            
         return str(rval) + self.label_extra
 
