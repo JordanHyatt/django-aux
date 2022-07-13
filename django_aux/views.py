@@ -174,7 +174,7 @@ class CheckGroupPermMixin(UserPassesTestMixin):
         ''' an extended test_func that checks group membership '''
         #First the parent class' test_func must pass
         if super().test_func() == False: return False
-        #Next, check for any allowed groups as an empty list of groups is taken to be permissive
+        #Next, if allowed groups is an empty list it is taken to be permissive
         if self.allowed_groups == []: return True
         #Now begin the test to see if this user can proceed
         #Test 1: Is the user a super user? (If allowed)

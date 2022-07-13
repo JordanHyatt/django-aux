@@ -7,6 +7,19 @@ import json
 from django.utils.html import format_html
 
 
+class CheckFkColumn(tables.Column):
+    ''' A column checks and displays the existence of a FK relationship '''
+    def __init__(self, *args, fk_attr=None, present_symbol='✔', absent_symbol='X', **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fk_attr = fk_attr if fk_attr.endswith('_id') else f'{fk_attr}_id'
+        self.psym = present_symbol
+        self.asym = absent_symbol
+
+    def render(self, value, record):
+        fk_obj = getattr(record, self.fk_attr)
+        check = self.asym if fk_obj==None else self.psym
+        return f'{value}{check}'
+
 class RoundNumberColumn(tables.Column):
     ''' A column that will round a number and add commas for display '''
 
