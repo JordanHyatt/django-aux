@@ -1,7 +1,7 @@
 import django_tables2 as tables
 from django_tables2 import A
 import random
-from pandas import isna, Series
+from pandas import isna, Series, DataFrame as DF
 from math import ceil
 import json
 from django.utils.html import format_html
@@ -33,7 +33,7 @@ class CollapseColumn(tables.Column):
     def __init__(
         self, *args, label='Show', label_accessor=None, label_extra='', hyperlink=False, href_attr=None,
         iterable=False, str_attr=None, order_by=None, fkwargs=None, property_attr=None, dictionary=False,
-        nowrap=True, li_style=None,
+        nowrap=True, style=None,
         **kwargs
     ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
         super().__init__(*args, **kwargs)
@@ -47,18 +47,20 @@ class CollapseColumn(tables.Column):
         self.str_attr = str_attr
         self.order_by = order_by
         self.nowrap = nowrap
-        self.li_style = li_style
+        self.style = style
         self.fkwargs = fkwargs
         self.property_attr = property_attr
         self.dictionary = dictionary
-        if self.dictionary:
-            self.iterable = True
 
-    def get_label(self, record):
+    def get_label(self, value, record):
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
             rval = self.label
+        if isna(value):
+            return ''     
+        elif len(value)==0:
+            return ''            
         return str(rval) + self.label_extra
 
     def get_href(self, obj):
@@ -68,46 +70,26 @@ class CollapseColumn(tables.Column):
         else:
             return getattr(obj, self.href_attr)
 
-    def get_li_style(self):
+    def get_style(self):
         ''' method returns the style to be applied to the li tags '''
-        if self.li_style:
-            return self.li_style
-        return 'style="white-space: nowrap;"' if self.nowrap else ''
+        if self.style:
+            return f'"{self.style}"'
+        return '"white-space: nowrap;"' if self.nowrap else ''
 
     def render(self, value, record):
         if self.property_attr:
             value = getattr(record, self.property_attr)
+        if self.dictionary:
+            val = self.get_dictionary_val(value)        
+        elif self.iterable == False:
+            val = self.get_noniterable_val(value, record)
+        else: 
+            val = self.get_iterable_val(value)
+        return self.final_render(value, record, val)
+   
+    def final_render(self, value, record, val):
         randnum = random.randint(1, 1_000_000_000)
-        label = self.get_label(record)
-        if self.iterable == False:
-            if isna(value) or value == '' or value == {}:
-                label = ''
-            if self.hyperlink:
-                val = f'<a href={value}>{value}</a>'
-            else:
-                val = value
-        else:
-            if self.dictionary:
-                if type(value) != dict:
-                    value = json.loads(value)
-                if isna(value):
-                    value = {}
-                value = value.items()
-            if self.order_by:
-                value = value.order_by(self.order_by)
-            if self.fkwargs:
-                value = value.filter(**self.fkwargs)
-            if len(value) == 0:
-                label = ''
-            val = ''
-            style = self.get_li_style()
-            for obj in value:
-                obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
-                if self.hyperlink:
-                    print('hyperlinking')
-                    href = self.get_href(obj)
-                    obj_val = f'<a href={href}>{obj_val}</a>'
-                val = val + f'<li {style}>{obj_val}</li>'
+        label = self.get_label(value, record)
         if label != '':
             rval = (
                 f'''
@@ -122,14 +104,47 @@ class CollapseColumn(tables.Column):
             return format_html(rval)
         else:
             return ''
+    
+    def get_iterable_val(self, value):
+        if self.order_by:
+            value = value.order_by(self.order_by)
+        if self.fkwargs:
+            value = value.filter(**self.fkwargs)
+        val = ''
+        style = self.get_style()
+        for obj in value:
+            obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
+            if self.hyperlink:
+                href = self.get_href(obj)
+                obj_val = f'<a href={href}>{obj_val}</a>'
+            val = val + f'<li style={style}>{obj_val}</li>'
+        return val
 
+    def get_noniterable_val(self, value, record):
+        if self.hyperlink:
+            href = self.get_href(record)
+            val = f'<a href={href}>{value}</a>'
+        else:
+            val = value
+        return f'<div style={self.get_style()}>{val}</div>'
+
+    def get_dictionary_val(self, value):
+        if isna(value):
+            value = {}        
+        if type(value) != dict:
+            value = json.loads(value)
+        df = DF(Series(value), columns=['value'])
+        df = df.reset_index().rename(columns={'index':'key'})
+        df_html = df.to_html(
+            classes = ['table-bordered', 'table-striped', 'table-sm'],
+            index=False, justify='left', header=False
+        )
+        return f'<div style={self.get_style()}>{df_html}</div>'
 
 def get_background(value, record, table, bound_column):
     val = (str(value).split('/')[0]).replace(',','')
     val = float(val)
-    print(value,record,bound_column)
     vals = [getattr(row, bound_column.name) for row in table.data]
-    print(vals)
     ser = Series(vals).fillna(0)
     max = ser.max()
     if max == 0:
