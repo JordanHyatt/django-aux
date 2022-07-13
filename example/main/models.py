@@ -35,7 +35,7 @@ class Person(models.Model):
     
     @property
     def attr_dict(self):
-        d = self.__dict__
+        d = self.__dict__.copy()
         d.pop('_state')
         return d
 

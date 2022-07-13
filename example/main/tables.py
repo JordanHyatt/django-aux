@@ -9,6 +9,7 @@ class PersonTable(tables.Table):
     adjectives_links = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
     adjectives_dyn_labels = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
     pdict = CollapseColumn(accessor='attr_dict', dictionary=True, label_accessor='last_name') # dict 
+    pdict_styled = CollapseColumn(accessor='attr_dict', dictionary=True, label_accessor='last_name', style='min-width:500px') # dict with style 
     longtxt = CollapseColumn(accessor='long_text', style='background-color: blue; color: yellow') # non-iterable using style
     org = CollapseColumn(accessor='org', label_accessor='org__name') # non-iterable with dynamic label
     salary_rounded = RoundNumberColumn(accessor='salary', round_to=0, money=True) # RoundNumberColumn
