@@ -57,9 +57,23 @@
     {% endif %}
 </div>
 
-{% if table %}
-<h4>{{ table_header }}</h4>
-{% render_table table %}
+{% if submit_buttons %}
+    <div class="row">
+        <div id="form_card1" class="card-panel col s12">
+            <form action="output">
+                {% csrf_token %}
+                {% for sb in submit_buttons %}
+                <button class="btn btn-primary" name="{{ sb.name }}" type="submit"> {{ sb.desc }} </button>
+                {% endfor %}
+                {% render_table table %}
+            </form>
+        </div>
+    </div>
+{% else %}
+    {% if table %}
+        <h4>{{ table_header }}</h4>
+        {% render_table table %}
+    {% endif %}
 {% endif %}
 
 {% if plot1 %}
