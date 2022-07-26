@@ -139,7 +139,9 @@
             y = window.sessionStorage.getItem(key) // store in session variables
             var key = window.location.pathname + '_xscroll' // Build the unique key for xscroll
             x = window.sessionStorage.getItem(key)
-            window.scrollTo(x, y)
+            setTimeout(function () {
+                window.scrollTo(x, y);
+            }, 200);
         }
         $(document).ready(setScroll)
     </script>
