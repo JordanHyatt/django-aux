@@ -16,16 +16,19 @@ class SaveFilterMixin(SingleTableMixin):
 
     def get(self, request, *args, **kwargs):
         view_name = self.__class__
-        qstr = self.request.GET.urlencode()
+        qstr = request.GET.urlencode()
         full_path = request.get_full_path()
-
         if qstr != '':
-            self.request.session[f'{view_name}_fp'] = full_path
+            self.request.session[f'{view_name}_qstr'] = qstr
             return super().get(request)
         else:
-            fp = self.request.session.get(f'{view_name}_fp')
-            if isna(fp) or '_export' in fp:
-                return super().get(request)
+            qstr = request.session.get(f'{view_name}_qstr')
+            if qstr != None:
+                fp = full_path + '?' + qstr
+            else:
+                fp = full_path
+            if isna(qstr) or '_export' in fp:
+                return super().get(request, *args, **kwargs)
             else:
                 return redirect(fp)
 
