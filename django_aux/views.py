@@ -10,6 +10,8 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 import plotly.express as px
 from plotly import offline
 
+
+
 class SaveFilterMixin(SingleTableMixin):
     """ This Mixin Can be used with a FilterView SingleTable in order to save
     the users filter selections after navegating away from the lookup page"""
