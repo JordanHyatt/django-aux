@@ -7,5 +7,6 @@ urlpatterns = [
     path("person-lookup", PersonLookup.as_view(), name="person-lookup"),
     path("person-lookup/<int:foopk>", PersonLookup.as_view(), name="person-lookup"),
     path("person-delete/<int:pk>", PersonDelete.as_view(), name="person-delete"),
+    path("person-update/<int:pk>", PersonUpdate.as_view(), name="person-update"),
     
 ]

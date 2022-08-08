@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_tables2',
     'crispy_forms',
+    'simple_history',
     'bootstrap4',
     'django_aux',
     'main.apps.MainConfig',
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'example.urls'
@@ -158,3 +160,7 @@ BOOTSTRAP4 = {
 
 DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap4.html'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+
+LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = 'daux/login'

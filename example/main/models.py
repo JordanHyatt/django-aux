@@ -2,6 +2,7 @@ from django.db import models
 import uuid
 import names
 import random
+from simple_history.models import HistoricalRecords
 
 
 class Organization(models.Model):
@@ -31,8 +32,9 @@ class Person(models.Model):
     first_name = models.CharField(max_length=100, null=True)
     middle_name = models.CharField(max_length=100, null=True, blank=True)
     salary = models.FloatField(null=True)
-    adjectives = models.ManyToManyField('PersonAdjective')
-    
+    adjectives = models.ManyToManyField('PersonAdjective', blank=True)
+    history = HistoricalRecords(related_name='log')
+
     @property
     def attr_dict(self):
         d = self.__dict__.copy()

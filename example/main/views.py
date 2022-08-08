@@ -5,6 +5,7 @@ from django_aux.views import SaveFilterMixin, RedirectPrevMixin
 from main.tables import *
 from main.filters import *
 from main.models import *
+from main.forms import *
 
 
 class MainBase:
@@ -39,3 +40,8 @@ class PersonLookup(PersonBase, SaveFilterMixin, FilterView):
 class PersonDelete(PersonBase, RedirectPrevMixin, DeleteView):
     ''' Delete view for Person object '''
     template_name = 'django_aux/delete.html'
+
+
+class PersonUpdate(PersonBase, RedirectPrevMixin, UpdateView):
+    ''' Update view for Person instance '''
+    form_class = PersonForm

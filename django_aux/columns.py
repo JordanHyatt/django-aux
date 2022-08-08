@@ -40,7 +40,114 @@ class RoundNumberColumn(tables.Column):
         return self.prefix + rstr
 
 
-class CollapseColumn(tables.Column):
+class CollapseColumnBase(tables.Column):
+    ''' Base class for CollapseColumns '''
+    def __init__(
+        self, 
+        *args, 
+        label='Show', label_accessor=None, label_extra='', style=None,
+        **kwargs   
+    ):
+        super().__init__(*args, **kwargs)
+        self.label = label
+        self.label_accessor = label_accessor
+        self.label_extra = label_extra
+        self.style = style
+
+    def get_label(self, value=None, record=None, val=None):
+        if self.label_accessor:
+            rval = A(self.label_accessor).resolve(record)
+        else:
+            rval = self.label
+        if value in [None, {}] or val==None:
+            return ''     
+        elif getattr(self, 'iterable', None):
+            if len(value)==0:
+                return ''            
+        return str(rval) + self.label_extra
+
+    def final_render(self, value, record, val):
+        randnum = random.randint(1, 1_000_000_000)
+        label = self.get_label(value=value, record=record, val=val)
+        if label != '':
+            rval = (
+                f'''
+                <a href="#unique{record.pk}{randnum}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    {label}
+                </a>
+                <ul class="collapse list-styled" id="unique{record.pk}{randnum}">
+                    {val}
+                </ul>
+                '''
+            )
+            return format_html(rval)
+        else:
+            return ''    
+
+class CollapseDataFrameColumn(CollapseColumnBase):
+    ''' Column renders a collapsable pandas DataFrame from a quesryset value '''
+    def __init__(
+        self, *args, 
+        label='Show', label_accessor=None, label_extra='', 
+        filter_kwargs = None, # kwargs to be passed to qs.filter method
+        filter_args = None, # args to be passed to qs.filter method
+        annotate_kwargs = None, # kwargs to be passed to qs.annotate method
+        values_kwargs = None, # kwargs to be passed to the qs.values method
+        values_args = None, # args to be passed to the qs.values method
+        order_by_args = None, # args to be passed to the qs.order_by method
+        limit = None, # Integer to limit the qs
+        to_html_kwargs = None, # kwargs to be passed to the DataFrame.to_html method
+        to_html_kwargs_extra = None, # kwargs to add to the default to_html_kwargs
+        **kwargs   
+    ):
+        super().__init__(*args, **kwargs)
+        self.label = label
+        self.label_accessor = label_accessor
+        self.label_extra = label_extra
+        self.limit = limit
+        self.filter_kwargs = {} if filter_kwargs==None else filter_kwargs
+        self.filter_args = [] if filter_args==None else filter_args
+        self.annotate_kwargs = {} if annotate_kwargs==None else annotate_kwargs
+        self.values_kwargs = {} if values_kwargs==None else values_kwargs
+        self.values_args = [] if values_args==None else values_args
+        self.order_by_args = [] if order_by_args==None else order_by_args
+        if to_html_kwargs==None:
+            self.to_html_kwargs = dict(
+                classes = ['table-bordered', 'table-striped', 'table-sm'],
+                index=False, justify='left'
+            )                    
+        else: 
+            self.to_html_kwargs = {} 
+        self.to_html_kwargs_extra = {} if to_html_kwargs_extra==None else to_html_kwargs_extra
+        self.to_html_kwargs.update(self.to_html_kwargs_extra)
+         
+
+
+    def get_queryset(self, value):
+        ''' method applies user passed kwargs/args to qs methods '''
+        qs = value.annotate(
+            **self.annotate_kwargs
+        ).filter(
+            *self.filter_args, **self.filter_kwargs
+        ).values(
+            *self.values_args, **self.values_kwargs
+        ).order_by(*self.order_by_args)
+        return qs if self.limit==None else qs[:self.limit]
+
+    def get_df_html(self, qs):
+        return DF(qs).to_html(**self.to_html_kwargs)
+
+    def render(self, value, record):
+        qs = self.get_queryset(value)
+        if qs.count() == 0: 
+            val = None
+        else:
+            val = self.get_df_html(qs)
+        return self.final_render(value=value, record=record, val=val)
+
+
+
+class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
 
     def __init__(
@@ -50,9 +157,6 @@ class CollapseColumn(tables.Column):
         **kwargs
     ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
         super().__init__(*args, **kwargs)
-        self.label = label
-        self.label_accessor = label_accessor
-        self.label_extra = label_extra
         self.hyperlink = hyperlink  # Attempts to linkify the elements of an iterable
         # the attribute name to be used to pull the href value if None provided get_absolute_url will be called
         self.href_attr = href_attr
@@ -64,18 +168,6 @@ class CollapseColumn(tables.Column):
         self.fkwargs = fkwargs
         self.property_attr = property_attr
         self.dictionary = dictionary
-
-    def get_label(self, value=None, record=None):
-        if self.label_accessor:
-            rval = A(self.label_accessor).resolve(record)
-        else:
-            rval = self.label
-        if value in [None, {}]:
-            return ''     
-        elif self.iterable:
-            if len(value)==0:
-                return ''            
-        return str(rval) + self.label_extra
 
     def get_href(self, obj):
         ''' Method derives the href value to be used in hyperlinking list items '''
@@ -100,24 +192,6 @@ class CollapseColumn(tables.Column):
         else: 
             val = self.get_iterable_val(value)
         return self.final_render(value=value, record=record, val=val)
-   
-    def final_render(self, value, record, val):
-        randnum = random.randint(1, 1_000_000_000)
-        label = self.get_label(value=value, record=record)
-        if label != '':
-            rval = (
-                f'''
-                <a href="#unique{record.pk}{randnum}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    {label}
-                </a>
-                <ul class="collapse list-styled" id="unique{record.pk}{randnum}">
-                    {val}
-                </ul>
-                '''
-            )
-            return format_html(rval)
-        else:
-            return ''
     
     def get_iterable_val(self, value):
         if self.order_by:
