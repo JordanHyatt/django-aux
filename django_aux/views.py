@@ -176,10 +176,8 @@ class CheckGroupPermMixin(UserPassesTestMixin):
     allow_superusers = True #If true then a django superuser will be granted access regardless of group membership
 
     def test_func(self):
-        ''' an extended test_func that checks group membership '''
-        #First the parent class' test_func must pass
-        if super().test_func() == False: return False
-        #Next, if allowed groups is an empty list it is taken to be permissive
+        ''' an overwritten UserPassesTest test_func that checks group membership '''
+        #if allowed groups is an empty list it is taken to be permissive
         if self.allowed_groups == []: return True
         #Now begin the test to see if this user can proceed
         #Test 1: Is the user a super user? (If allowed)
