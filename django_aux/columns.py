@@ -61,7 +61,6 @@ class CollapseColumnBase(tables.Column):
         return '"white-space: nowrap;"' if self.nowrap else ''
 
     def get_label(self, value=None, record=None, val=None):
-        print(self.label_accessor)
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
