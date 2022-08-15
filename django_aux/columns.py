@@ -54,7 +54,14 @@ class CollapseColumnBase(tables.Column):
         self.label_extra = label_extra
         self.style = style
 
+    def get_style(self):
+        ''' method returns the style to be applied to the li tags '''
+        if self.style:
+            return f'"{self.style}"'
+        return '"white-space: nowrap;"' if self.nowrap else ''
+
     def get_label(self, value=None, record=None, val=None):
+        print(self.label_accessor)
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
@@ -88,7 +95,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
     ''' Column renders a collapsable pandas DataFrame from a quesryset value '''
     def __init__(
         self, *args, 
-        label='Show', label_accessor=None, label_extra='', 
+        label='Show',
         filter_kwargs = None, # kwargs to be passed to qs.filter method
         filter_args = None, # args to be passed to qs.filter method
         annotate_kwargs = None, # kwargs to be passed to qs.annotate method
@@ -102,8 +109,6 @@ class CollapseDataFrameColumn(CollapseColumnBase):
     ):
         super().__init__(*args, **kwargs)
         self.label = label
-        self.label_accessor = label_accessor
-        self.label_extra = label_extra
         self.limit = limit
         self.filter_kwargs = {} if filter_kwargs==None else filter_kwargs
         self.filter_args = [] if filter_args==None else filter_args
@@ -151,9 +156,9 @@ class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
 
     def __init__(
-        self, *args, label='Show', label_accessor=None, label_extra='', hyperlink=False, href_attr=None,
+        self, *args, hyperlink=False, href_attr=None,
         iterable=False, str_attr=None, order_by=None, fkwargs=None, property_attr=None, dictionary=False,
-        nowrap=True, style=None,
+        nowrap=True,
         **kwargs
     ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
         super().__init__(*args, **kwargs)
@@ -164,7 +169,6 @@ class CollapseColumn(CollapseColumnBase):
         self.str_attr = str_attr
         self.order_by = order_by
         self.nowrap = nowrap
-        self.style = style
         self.fkwargs = fkwargs
         self.property_attr = property_attr
         self.dictionary = dictionary
@@ -175,12 +179,6 @@ class CollapseColumn(CollapseColumnBase):
             return obj.get_absolute_url()
         else:
             return getattr(obj, self.href_attr)
-
-    def get_style(self):
-        ''' method returns the style to be applied to the li tags '''
-        if self.style:
-            return f'"{self.style}"'
-        return '"white-space: nowrap;"' if self.nowrap else ''
 
     def render(self, value, record):
         if self.property_attr:

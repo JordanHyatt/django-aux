@@ -58,7 +58,6 @@ class InlineFormsetMixin:
     def post(self, request, *args, **kwargs):
         next = self.request.session.get('next')
         cancel = 'cancel' in self.request.POST.keys()
-        print(cancel,next)
         if next and cancel:
             return HttpResponseRedirect(next)
         try:
