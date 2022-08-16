@@ -153,8 +153,7 @@ class RedirectPrevMixin:
     def get_success_url(self):
         ''' If next was stored redirect there, otherwise return super() '''
         next = self.request.session.get('next')
-        m = 'addlines' not in self.request.POST # 
-        if next and m: 
+        if next: 
             return next
         return super().get_success_url()
 
