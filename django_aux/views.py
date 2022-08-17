@@ -1,6 +1,7 @@
 from django_tables2 import SingleTableMixin
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 from pandas import isna, DataFrame as DF, to_datetime
 import inspect
 from django.contrib import messages
@@ -42,52 +43,68 @@ class SaveFilterMixin(SingleTableMixin):
             return kwargs
 
 class InlineFormsetMixin:
-    formset_helper = None
+    factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and herder are optional
     form_helper = None
+    template_name = 'oee/inline-formset.html'
+    addlines_url = None # set this in the view to have the addlines btn redirect here with self.object.pk as an arg
     
-    def get_context_data(self,*args,**kwargs):
-        context=super().get_context_data(*args,**kwargs)
-        if self.request.POST:
-            context['formset'] = self.formset(self.request.POST,instance=self.object)
-        else:
-            context['formset'] = self.formset(instance=self.object)
-        context['formset_helper']=self.formset_helper if self.formset_helper else None
+    def get_context_data(self, *args, factories=None, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if factories == None:
+            factories = [fd.copy() for fd in self.factories]
+            for fd in factories:
+                if self.request.POST:
+                    fd['factory'] = fd['factory'](self.request.POST, instance=self.object)
+                else:
+                    fd['factory'] = fd['factory'](instance=self.object)
+        context['factories'] = factories
         context['form_helper']=self.form_helper if self.form_helper else None
-        return context               
-        
+        return context
+            
     def post(self, request, *args, **kwargs):
-        next = self.request.session.get('next')
-        cancel = 'cancel' in self.request.POST.keys()
-        if next and cancel:
-            return HttpResponseRedirect(next)
         try:
             self.object = self.get_object()
         except AttributeError:
             self.object = None
         context = self.get_context_data()
         form = self.get_form()
-        child = context['formset']
-        if form.is_valid() and child.is_valid():
+        if not form.is_valid():
+            print(form.errors)
+            return self.form_invalid(form)
+        fdsv = True
+        for fd in context['factories']:
+            if not fd['factory'].is_valid():
+                print(fd['factory'].errors)
+                fdsv = False
+        if fdsv and form.is_valid():
             return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            return self.form_invalid(form=form, factories=context['factories'])
 
-    def form_valid(self,form):
+    def form_valid(self, form):
         self.object = form.save()
         context = self.get_context_data()
-        children_names = ['formset']
-        for children_name in children_names:
-            child = context[children_name] 
-            child.is_valid()
-            child.save()
+        for fd in context['factories']:
+            if fd['factory'].is_valid():
+                fd['factory'].save()
         self.object.save()
         return super().form_valid(form)
 
+    def form_invalid(self, form, factories):
+        return self.render_to_response(self.get_context_data(form=form, factories=factories))
+
     def get_success_url(self):
-        if 'addlines' in self.request.POST:
+        if 'addlines' in self.request.POST and self.addlines_url:
+            #user defined a redirect url for the addlines btn, default behavior sends pk as arg
+            return reverse_lazy(self.addlines_url, kwargs={'pk':self.object.pk})
+        elif 'addlines' in self.request.POST and not self.addlines_url:
+            print('\n\n\nI am here\n\n\n')
+            #adding lines to form but no redirect url given. Use default behavior
             return self.request.path_info
         else:
+            #add lines was not clicked, use default success_url
             return super().get_success_url()
+
 
 class SaveFormMixin:
     """ This Mixin Can be used with any view that uses a form mixin to
@@ -152,6 +169,7 @@ class RedirectPrevMixin:
 
     def get_success_url(self):
         ''' If next was stored redirect there, otherwise return super() '''
+        print('\n\n\nI am REdirect prev\n\n\n')
         next = self.request.session.get('next')
         if next: 
             return next

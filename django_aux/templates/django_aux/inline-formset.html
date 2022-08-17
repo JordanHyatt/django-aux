@@ -14,12 +14,14 @@
     {% else %}
     {% crispy form %}
     {% endif %}
-    <h5> {{ formset_header }} </h5>
-    {% if formset_helper %}
-    {% crispy formset formset_helper %}
+    {% for fd in factories %}
+    <h5>{{ fd.header }}</h5>
+    {% if fd.helper %}
+    {% crispy fd.factory fd.helper %}
     {% else %}
-    {% crispy formset %}
+    {% crispy fd.factory %}
     {% endif %}
+    {% endfor %}
     <div class="row ml-2">
         {% if add_lines_btn %}
         <div class="form-actions m-2">
@@ -30,7 +32,8 @@
             <input type="submit" name="save" value="Save" class="btn btn-primary" id="submit-save">
         </div>
         <div class="form-actions m-2">
-            <a class="btn btn-primary" href="{{ request.session.next }}" role="button">Cancel</a>
+            <input class="btn btn-primary btn-warning" name="cancel" type="submit" value="Cancel"
+                onclick="history.back()">
         </div>
     </div>
 </form>

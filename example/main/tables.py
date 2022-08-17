@@ -36,6 +36,7 @@ class PersonTable(tables.Table):
     salary_rounded = RoundNumberColumn(accessor='salary', round_to=0, money=True) # RoundNumberColumn
     delete = tables.LinkColumn('person-delete', verbose_name='', text='[Delete]', args=[A('id')])
     update = tables.LinkColumn('person-update', verbose_name='', text='[Update]', args=[A('id')])
+    update_inline = tables.LinkColumn('person-update-inline', verbose_name='', text='[Update Inline]', args=[A('id')])
     class Meta:
         model = Person
         exclude = ['uuid']
