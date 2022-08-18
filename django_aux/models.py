@@ -1,6 +1,17 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from simple_history.models import HistoricalRecords
+
+class ModelBase(models.Model):
+    class Meta:
+        abstract = True
+    history = HistoricalRecords(related_name='log', inherit=True)
+
+    @classmethod
+    def get_field_names(cls):
+        ''' Return a list of the db field names for objects of this class '''
+        return [f.name for f in cls._meta.get_fields()]
 
 class CheckOverlapMixin:
     ''' 
