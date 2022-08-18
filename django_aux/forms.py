@@ -3,7 +3,7 @@ from crispy_forms.layout import *
 from crispy_forms.bootstrap import *
 from django import forms
 
-class BaseModelForm(forms.ModelForm):
+class ModelFormBase(forms.ModelForm):
     DISABLE = []
     LIMIT_QS = []
     
