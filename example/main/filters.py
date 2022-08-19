@@ -1,9 +1,9 @@
-from django_aux.filters import BaseFilterSet, MetaBase
+from django_aux.filters import FilterSetBase, MetaBase
 from main.models import Person
 from crispy_forms.layout import *
 
 
-class PersonFilter(BaseFilterSet):
+class PersonFilter(FilterSetBase):
     ''' A filter for Person objects '''
     class Meta(MetaBase):
         model = Person

@@ -3,10 +3,10 @@ from crispy_forms.layout import *
 from crispy_forms.bootstrap import *
 from django.forms import inlineformset_factory
 from django import forms
-from django_aux.forms import BaseModelForm
+from django_aux.forms import ModelFormBase
 from main.models import *
 
-class PersonForm(BaseModelForm):
+class PersonForm(ModelFormBase):
     class Meta:
         model = Person
         exclude = []
