@@ -6,12 +6,11 @@ from pandas import isna, DataFrame as DF, to_datetime
 import inspect
 from django.contrib import messages
 from django.db.models import F
+from django_filters.views import FilterView
 from django_pandas.io import read_frame
 from django.contrib.auth.mixins import UserPassesTestMixin
 import plotly.express as px
 from plotly import offline
-
-
 
 class SaveFilterMixin(SingleTableMixin):
     """ This Mixin Can be used with a FilterView SingleTable in order to save
@@ -43,6 +42,7 @@ class SaveFilterMixin(SingleTableMixin):
             return kwargs
 
 class InlineFormsetMixin:
+    ''' This mixin allows for multiple formset factories to be injected and processed in a form view '''
     factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and herder are optional
     form_helper = None
     template_name = 'oee/inline-formset.html'
@@ -105,6 +105,35 @@ class InlineFormsetMixin:
             #add lines was not clicked, use default success_url
             return super().get_success_url()
 
+class DashFilterView(FilterView):
+    ''' A view for passing filter qs to a dash app '''
+    plotly_app_name = None #set this for dash functionality
+    template_name = 'django_aux/dash-filter.html'
+    values_args = []    #passing all sorts of args and kwargs for backend qs
+    values_kwargs = {}
+    annotate_kwargs = {}
+    filter_args = []
+    filter_kwargs = {}
+    to_json_kwargs = dict(date_format='iso', orient='records')
+
+    def get_context_data(self, *args, **kwargs):   
+        context = super().get_context_data(*args, **kwargs)
+        context['plotly_app_name'] = self.plotly_app_name
+        context['style_str'] = "min-width:1500px"        
+        context['initial_arguments'] = self.get_initial_arguments()
+        return context
+        
+    def get_initial_arguments(self):
+        qs = self.object_list.filter(
+            *self.filter_args, **self.filter_kwargs
+        ).annotate(
+            **self.annotate_kwargs
+        ).values(
+            *self.values_args, **self.values_kwargs
+        )
+        df = read_frame(qs).astype(str)
+        data = df.to_json(**self.to_json_kwargs)
+        return {'data':{'children':data}}
 
 class SaveFormMixin:
     """ This Mixin Can be used with any view that uses a form mixin to
