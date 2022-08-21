@@ -36,6 +36,16 @@ class PersonLookup(PersonBase, SaveFilterMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Person Lookup'
+        context.update(dict(url1='person-create', url1_text='[Create New Person]'))
+        return context
+
+class PersonCreate(PersonBase, SaveFilterMixin, CreateView):
+    form_class = PersonForm
+    success_url = reverse_lazy('person-lookup')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sub_header'] = 'Person Create'
         return context
 
 class PersonDelete(PersonBase, RedirectPrevMixin, DeleteView):

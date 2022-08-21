@@ -17,7 +17,6 @@
 <h3> {{ filter_header }} </h3>
 <h4> Filter Results </h4>
 <form action="" method="get" enctype="multipart/form-data">
-    <input type="hidden" name="CSRFToken" value="{% csrf_token %}">
     {% crispy filter.form %}
 </form>
 {% endif %}
@@ -61,8 +60,7 @@
 {% if submit_buttons %}
     <div class="row">
         <div id="form_card1" class="card-panel col s12">
-            <form action="output">
-                {% csrf_token %}
+            <form action="output">{% csrf_token %}
                 {% for sb in submit_buttons %}
                 <button class="btn btn-primary" name="{{ sb.name }}" type="submit"> {{ sb.desc }} </button>
                 {% endfor %}

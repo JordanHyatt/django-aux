@@ -10,7 +10,7 @@
     {% if filter %}
         <h4> {{ filter_header }} </h4>
         <h5> Filter Results </h5>
-        <form action="" method="get" enctype="multipart/form-data">{% csrf_token %}
+        <form action="" method="get" enctype="multipart/form-data">
             {% crispy filter.form %}
         </form>
     {% endif %}
