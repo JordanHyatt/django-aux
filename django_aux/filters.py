@@ -29,13 +29,14 @@ class MetaBase:
         },
     }
 
-class BaseFilterSet(FilterSet):
+class FilterSetBase(FilterSet):
     ''' A BaseFilter class that initializes a crispy form helper 
     with submit and clear filter buttons '''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.form.helper = FormHelper()
+        self.form.helper.disable_csrf = True
         self.form.helper.add_input(
             Submit('submit', 'Apply Filter')
         )

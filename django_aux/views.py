@@ -12,8 +12,8 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 import plotly.express as px
 from plotly import offline
 
-class SaveFilterMixin(SingleTableMixin):
-    """ This Mixin Can be used with a FilterView SingleTable in order to save
+class SaveFilterMixinNT:
+    """ This Mixin Can be used to save
     the users filter selections after navegating away from the lookup page"""
 
     def get(self, request, *args, **kwargs):
@@ -40,6 +40,9 @@ class SaveFilterMixin(SingleTableMixin):
             return {}
         else:
             return kwargs
+
+class SaveFilterMixin(SingleTableMixin, SaveFilterMixinNT):
+    ''' SaveFilterMixin Classic (for use with SingleTableMixin) '''
 
 class InlineFormsetMixin:
     ''' This mixin allows for multiple formset factories to be injected and processed in a form view '''
