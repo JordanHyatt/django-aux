@@ -52,8 +52,8 @@ class Person(models.Model):
 
     @property
     def long_text(self):
-        msg = """ First I was afraid, I was petrified...."""
-        return msg
+        import lipsum
+        return lipsum.generate_paragraphs(3)
 
     @classmethod
     def generate_random_people(cls, wipe_table=False, n=10):

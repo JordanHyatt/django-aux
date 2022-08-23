@@ -57,8 +57,12 @@ class CollapseColumnBase(tables.Column):
     def get_style(self):
         ''' method returns the style to be applied to the li tags '''
         if self.style:
-            return f'"{self.style}"'
-        return '"white-space: nowrap;"' if self.nowrap else ''
+            r = f'{self.style}'
+        else:
+            r = 'max-width: 25vw;'
+        if self.nowrap:
+            r += 'white-space: nowrap;'
+        return f'"{r}"'
 
     def get_label(self, value=None, record=None, val=None):
         if self.label_accessor:
