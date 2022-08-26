@@ -161,7 +161,7 @@ class CollapseColumn(CollapseColumnBase):
     def __init__(
         self, *args, hyperlink=False, href_attr=None,
         iterable=False, str_attr=None, order_by=None, fkwargs=None, property_attr=None, dictionary=False,
-        nowrap=True,
+        nowrap=False,
         **kwargs
     ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
         super().__init__(*args, **kwargs)
