@@ -39,9 +39,18 @@ class RoundNumberColumn(tables.Column):
             rstr = '$' + rstr
         return self.prefix + rstr
 
-
+      
 class CollapseColumnBase(tables.Column):
-    ''' Base class for CollapseColumns '''
+    """ Base class for CollapseColumn, extends django-tables2 Column class
+    Args:
+        *args: arguments to be passed to djang-tables2 derived Column __init__ method
+        **kwargs: arguments to be passed to djang-tables2 derived Column __init__ method
+        label (:obj:`str`, optional): The string to be displayed on the collapse target. Defaults to "show"
+        label_accessor (:obj:`str`, optional): Passed to django-tables2 Accessor object along with the cell value. 
+            Result used as collapse target label
+        label_extra (:obj:`str`, optional): Extra text that will be appended to the collapse target label
+        style (:obj:`str`, optional): css expression that will be passed to the collapasable divs style parameter
+    """    
     def __init__(
         self, 
         *args, 
