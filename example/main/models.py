@@ -141,6 +141,9 @@ class Sale(models.Model):
     buyer = models.ForeignKey('Person', on_delete=models.CASCADE)
     category = models.CharField(max_length=200)
 
+    def __str__(self) -> str:
+        return f'{self.buyer} | {self.dtg} | {self.category} | {self.amount}'
+
 class SaleFactory(DjangoModelFactory):
     class Meta:
         model = Sale
@@ -149,5 +152,3 @@ class SaleFactory(DjangoModelFactory):
     category = FuzzyChoice(dict(Sale.CAT_CHOICES).keys())
     dtg = FuzzyDateTime(timezone.now()-dt.timedelta(1000))
 
-    def __str__(self) -> str:
-        return f'{self.buyer} | {self.dtg} | {self.category} | {self.amount}'
