@@ -3,7 +3,12 @@ import uuid
 import names
 import random
 from simple_history.models import HistoricalRecords
-
+from django_aux.factory import FuzzyTimeDelta
+from factory.django import DjangoModelFactory
+from factory import Faker, Iterator, post_generation, LazyAttribute, SubFactory
+from factory.fuzzy import FuzzyDateTime, FuzzyInteger, FuzzyText, FuzzyFloat, FuzzyChoice
+import datetime as dt
+from django.utils import timezone
 
 class Organization(models.Model):
     ''' Intance of this class represents a generic organization '''
@@ -124,3 +129,25 @@ class PersonAdjective(models.Model):
         return f'{self.word}'
 
 
+class Sale(models.Model):
+    ''' Represents the sale of something '''
+    CAT_CHOICES = (
+        ('groceries','Groceries'), ('sports','Sports'), ('entertainment','Entertainment'),
+        ('resturant','Resturant'), ('utilities', 'Utilities'), ('misc','Misc')
+    )
+
+    dtg = models.DateTimeField()
+    amount = models.FloatField()
+    buyer = models.ForeignKey('Person', on_delete=models.CASCADE)
+    category = models.CharField(max_length=200)
+
+class SaleFactory(DjangoModelFactory):
+    class Meta:
+        model = Sale
+    buyer = LazyAttribute(lambda o: Person.objects.order_by('?').first())
+    amount = FuzzyFloat(1,10_000)
+    category = FuzzyChoice(dict(Sale.CAT_CHOICES).keys())
+    dtg = FuzzyDateTime(timezone.now()-dt.timedelta(1000))
+
+    def __str__(self) -> str:
+        return f'{self.buyer} | {self.dtg} | {self.category} | {self.amount}'
