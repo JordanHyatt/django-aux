@@ -48,7 +48,7 @@ class InlineFormsetMixin:
     ''' This mixin allows for multiple formset factories to be injected and processed in a form view '''
     factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and herder are optional
     form_helper = None
-    template_name = 'oee/inline-formset.html'
+    template_name = 'django_aux/inline-formset.html'
     addlines_url = None # set this in the view to have the addlines btn redirect here with self.object.pk as an arg
     
     def get_context_data(self, *args, factories=None, **kwargs):
