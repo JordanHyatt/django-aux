@@ -66,23 +66,6 @@ class PlotSettingsFilterMixin(FilterSet):
 
     def __init__(self, *args, choices=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if choices == None:
-            choices = dict(
-                X_CHOICES=(('quarter', 'Quarter'), ('month', 'Month'),
-                           ('week', 'Week'), ('day', 'Day')),
-                Y_CHOICES=[],
-                COLOR_CHOICES=[],
-                PLOT_TYPE_CHOICES=(
-                    ('barg', 'Bar-Grouped'), ('bars', 'Bar-Stacked'),
-                    ('line', 'Line'), ('scatter', 'Scatter'),
-                    ('box', 'Box'), ('violin', 'Violin'),
-                ),
-                AGG_CHOICES=(
-                    (None, '--------'),
-                    ('quarter', 'Quarter'), ('month',
-                                             'Month'), ('week', 'Week'), ('day', 'Day')
-                )
-            )
         self.form.fields['x'] = forms.ChoiceField(
             choices=choices.get('X_CHOICES'))
         self.form.fields['y'] = forms.ChoiceField(

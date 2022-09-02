@@ -7,7 +7,8 @@ from main.tables import *
 from main.filters import *
 from main.models import *
 from main.forms import *
-
+from django.db.models.functions import TruncMonth, TruncWeek
+from django.db.models import Sum, F, Q
 
 class MainBase:
     ''' A base view for main app that implements common methods '''
@@ -85,10 +86,48 @@ class SaleLookup(SaleBase, SaveFilterMixin, FilterView):
 
 
 class SalePlotly(SaleBase, SinglePlotMixin ,SaveFilterMixin, FilterView):
+    plot_width = 1300
+    X_CHOICES = [ ('category','Sale Category'), ('month', 'Month')]
+    COLOR_CHOICES = [(None,'------')]
+    AGG_CHOICES = [(None,'------'), 'category']
+
+    CHOICE_VALUES_MAP = {
+        'category': 'category',
+        'week': dict(month=TruncWeek('dtg')),
+        'month': dict(month=TruncMonth('dtg')),
+    }
+    Y_CONFIG = {
+        'total_sales' : {
+            'verbose': 'TotalSales',
+            'akwargs':  dict(total_sales = Sum('amount'))
+        }
+    }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Data Exploration'
         return context
 
 
+class PartRunPlotly(PartRunBase, SinglePlotMixin, SaveFilterMixin, FilterView):
+    ''' Some crazy shit '''
+    template_name = 'single-plot-dash.html'
+    filterset_class = PartRunPlotlyFilter
+    plot_width = 1300
+    dtg_str = 'edtg'
+    X_CHOICES_EXTRA = [ ('pn','Part Number'),]
+    COLOR_CHOICES = [(None,'------')]+X_CHOICES_EXTRA 
+    AGG_CHOICES_EXTRA = X_CHOICES_EXTRA
+    Y_CONFIG = {
+        'total_qty': {
+            'val_list': ['qty_run',],
+            'func': lambda df: df['qty_run'].sum(),
+            'verbose': 'Total Quantity',
+        },
+        'percent_yield': {
+            'val_list': ['qty_run', 'qty_good'],
+            'func': lambda df: df['qty_good'].sum() / df['qty_run'].sum()*100,
+            'verbose': 'Percent Yield',
+        },
+    }
     

@@ -259,6 +259,16 @@ class PlotlyMixin:
             return False
         return True   
 
+
+    @staticmethod
+    def add_values(value, vargs, vkwargs):
+        if type(value) == dict:
+            vkwargs.update(value)
+        else:
+            vargs.append(value)
+        return value
+
+
     def get_fig(self):
         """Method generates and returns a plotly Figure object using 
             class variables set in the derived class
@@ -283,48 +293,40 @@ class PlotlyMixin:
         N_min = int(N_min)
         qs = self.object_list
 
-        
+        vargs = []
+        vkwargs = {} 
+        for label in [x, color, agg_by]:
+            self.add_values(self.CHOICE_VALUES_MAP.get(label), vargs, vkwargs)
+
+        akwargs = self.Y_CONFIG.get(y).get('akwargs')
+        gqs = qs.values(*vargs, **vkwargs).annoate(**akwargs)
+
+
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
+        x_choices = self.X_CHOICES
+        agg_choices = [(None,'------')]
+        color_choices = (None,'------')
+        if not hasattr(self, 'COLOR_CHOICES'):
+            color_choices.append(self.X_CHOICES)
+        if not hasattr(self, 'AGG_CHOICES'):
+            agg_choices.append(self.X_CHOICES)     
+
+        y_choices = []
+        for key, yd in self.Y_CONFIG.items():
+            y_choices.append((key, yd.get('verbose')))  
+
         choices = dict(
-            X_CHOICES=[('year', 'Year'), ('quarter', 'Quarter'),
-                       ('month', 'Month'), ('week', 'Week'), ('day', 'Day'), ],
-            Y_CHOICES=[],
-            COLOR_CHOICES=[(None, '--------')],
+            X_CHOICES=x_choices,
+            Y_CHOICES=y_choices,
+            COLOR_CHOICES=color_choices,
             PLOT_TYPE_CHOICES=(
                 ('barg', 'Bar-Grouped'), ('bars', 'Bar-Stacked'),
                 ('line', 'Line'), ('scatter', 'Scatter'),
                 ('box', 'Box'), ('violin', 'Violin'),
             ),
-            AGG_CHOICES=[
-                ('quarter', 'Quarter'), ('month',
-                                         'Month'), ('week', 'Week'), ('day', 'Day')
-            ]
+            AGG_CHOICES=agg_choices
         )
-
-        for key, yd in self.Y_CONFIG.items():
-            choices.get('Y_CHOICES').append((key, yd.get('verbose')))
-
-        if hasattr(self, 'X_CHOICES'):
-            choices['X_CHOICES'] = self.X_CHOICES
-
-        if hasattr(self, 'X_CHOICES_EXTRA'):
-            for tup in self.X_CHOICES_EXTRA:
-                choices.get('X_CHOICES').append(tup)
-
-        if hasattr(self, 'COLOR_CHOICES'):
-            choices['COLOR_CHOICES'] = self.COLOR_CHOICES
-
-        if hasattr(self, 'COLOR_CHOICES_EXTRA'):
-            for tup in self.COLOR_CHOICES_EXTRA:
-                choices.get('COLOR_CHOICES').append(tup)
-
-        if hasattr(self, 'AGG_CHOICES'):
-            choices['AGG_CHOICES'] = self.AGG_CHOICES
-
-        if hasattr(self, 'AGG_CHOICES_EXTRA'):
-            for tup in self.AGG_CHOICES_EXTRA:
-                choices.get('AGG_CHOICES').append(tup)
         self.choices = choices
         kwargs['choices'] = choices
         return kwargs

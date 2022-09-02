@@ -51,4 +51,4 @@ class SalePlotlyFilter(PlotSettingsFilterMixin, SaleFilter):
     ''' A filter for Sale objects '''
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.form.helper.layout = self.layself.base_layout 
+        self.form.helper.layout = self.base_layout + self.extra_layout
