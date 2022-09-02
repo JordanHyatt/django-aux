@@ -238,17 +238,58 @@ class CheckGroupPermMixin(UserPassesTestMixin):
             return True
         return False
 
+
+class PlotlyMixin:
+    ''' This mixin generates a dynamic plotly plot, must be used with a filter that inherits PlotSettingsFilterMixin '''
+    plot_width = 1000
+    max_records = 1_000_000_000
+
+    def get_plot_qs(self):
+        ''' '''
+
+    def check_qs_count(self):
+        """_summary_
+
+        Returns:
+            bool: Indicting whether or the qs was too large
+        """        
+        if self.object_list.count() > self.max_records:
+            emsg = f'Number of records must be < {self.max_records} to produce plot.  Please filter more'
+            messages.warning(self.request, emsg)
+            return False
+        return True   
+
+    def get_fig(self):
+        """Method generates and returns a plotly Figure object using 
+            class variables set in the derived class
+
+        Returns:
+            plotly.graph_objects.Figure: A plotly Figure instance
+        """        
+        self.plot_df = DF()
+        if self.check_qs_count() == False: 
+            return
+        
+
+
+
 class SinglePlotMixin:
     ''' This mixin creates a potly figure based on a FilterView that is using
     the PlotSettingsFilterMixin '''
     plot_width = 1000
     max_records = 1_000_000_000
 
-    def get_fig(self):
-        self.plot_df = DF()
+    def check_qs_count(self):
         if self.object_list.count() > self.max_records:
             emsg = f'Number of records must be < {self.max_records} to produce plot.  Please filter more'
             messages.warning(self.request, emsg)
+            return False
+        return True       
+
+    def get_fig(self):
+        self.plot_df = DF()
+        
+        if self.check_qs_count() == False:
             return
 
         ### Get Plot Settings ###

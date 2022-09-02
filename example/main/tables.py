@@ -43,3 +43,10 @@ class PersonTable(tables.Table):
         sequence = []
 
 
+class SaleTable(tables.Table):
+    amount = RoundNumberColumn(round_to=2, money=True)
+    class Meta:
+        model = Sale
+        exclude = []
+
+

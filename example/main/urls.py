@@ -10,5 +10,8 @@ urlpatterns = [
     path("person-create", PersonCreate.as_view(), name="person-create"),
     path("person-update/<int:pk>", PersonUpdate.as_view(), name="person-update"),
     path("person-update-inline/<int:pk>", PersonUpdateInline.as_view(), name="person-update-inline"),
-    
+
+
+    path("sale-lookup", SaleLookup.as_view(), name="sale-lookup"),
+    path("sale-plotly", SalePlotly.as_view(), name="sale-plotly"),
 ]
