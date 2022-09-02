@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from pandas import isna, DataFrame as DF, to_datetime
 import inspect
 from django.contrib import messages
-from django.db.models import F
+from django.db.models import F, Count
 from django_filters.views import FilterView
 from django_pandas.io import read_frame
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -275,17 +275,18 @@ class PlotlyMixin:
 
         Returns:
             plotly.graph_objects.Figure: A plotly Figure instance
-        """        
-        self.plot_df = DF()
+        """    
+        self.plot_df = DF()    
         if self.check_qs_count() == False: 
             return
-
         x = self.request.GET.get('x')
         y = self.request.GET.get('y')
         color = self.request.GET.get('color')
         plot_type = self.request.GET.get('plot_type')
         agg_by = self.request.GET.get('aggregate_by')
-        N_min = self.request.GET.get('N_min')        
+        N_min = self.request.GET.get('N_min')   
+
+
         if x == None:
             return None
         if N_min in [None, '']:
@@ -295,22 +296,31 @@ class PlotlyMixin:
 
         vargs = []
         vkwargs = {} 
+        
         for label in [x, color, agg_by]:
-            self.add_values(self.CHOICE_VALUES_MAP.get(label), vargs, vkwargs)
-
-        akwargs = self.Y_CONFIG.get(y).get('akwargs')
-        gqs = qs.values(*vargs, **vkwargs).annoate(**akwargs)
-
+            if label in ['', None]:
+                continue
+            val = self.CHOICE_VALUES_MAP.get(label)
+            self.add_values(val, vargs, vkwargs)
+        agg_func = self.Y_CONFIG.get(y).get('agg_expr')
+        akwargs = dict(y=agg_func)
+        akwargs['N'] = Count('id')
+        gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).order_by()
+        self.plot_df = read_frame(gqs)
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
         x_choices = self.X_CHOICES
         agg_choices = [(None,'------')]
-        color_choices = (None,'------')
+        color_choices = [(None,'------')]
         if not hasattr(self, 'COLOR_CHOICES'):
-            color_choices.append(self.X_CHOICES)
+            color_choices += self.X_CHOICES
+        else:
+            color_choices = self.COLOR_CHOICES
         if not hasattr(self, 'AGG_CHOICES'):
-            agg_choices.append(self.X_CHOICES)     
+            agg_choices += self.X_CHOICES   
+        else:
+            agg_choices = self.AGG_CHOICES
 
         y_choices = []
         for key, yd in self.Y_CONFIG.items():
@@ -330,6 +340,13 @@ class PlotlyMixin:
         self.choices = choices
         kwargs['choices'] = choices
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['fig'] = self.get_fig()
+        context['plot_df'] = self.plot_df
+        return context
+
 
 class SinglePlotMixin:
     ''' This mixin creates a potly figure based on a FilterView that is using

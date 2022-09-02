@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView
 from django_filters.views import FilterView
-from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, SinglePlotMixin
+from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, PlotlyMixin
 from main.tables import *
 from main.filters import *
 from main.models import *
@@ -85,21 +85,22 @@ class SaleLookup(SaleBase, SaveFilterMixin, FilterView):
         return context
 
 
-class SalePlotly(SaleBase, SinglePlotMixin ,SaveFilterMixin, FilterView):
+class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
+    filterset_class = SalePlotlyFilter
+    template_name = 'django_aux/standard-plotly.html'
     plot_width = 1300
-    X_CHOICES = [ ('category','Sale Category'), ('month', 'Month')]
-    COLOR_CHOICES = [(None,'------')]
-    AGG_CHOICES = [(None,'------'), 'category']
+    X_CHOICES = [ ('category','Sale Category'), ('month', 'Month'), ('week', 'Week')]
+
 
     CHOICE_VALUES_MAP = {
         'category': 'category',
-        'week': dict(month=TruncWeek('dtg')),
+        'week': dict(week=TruncWeek('dtg')),
         'month': dict(month=TruncMonth('dtg')),
     }
     Y_CONFIG = {
         'total_sales' : {
             'verbose': 'TotalSales',
-            'akwargs':  dict(total_sales = Sum('amount'))
+            'agg_expr':  Sum('amount'),
         }
     }
 
@@ -107,27 +108,3 @@ class SalePlotly(SaleBase, SinglePlotMixin ,SaveFilterMixin, FilterView):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Data Exploration'
         return context
-
-
-class PartRunPlotly(PartRunBase, SinglePlotMixin, SaveFilterMixin, FilterView):
-    ''' Some crazy shit '''
-    template_name = 'single-plot-dash.html'
-    filterset_class = PartRunPlotlyFilter
-    plot_width = 1300
-    dtg_str = 'edtg'
-    X_CHOICES_EXTRA = [ ('pn','Part Number'),]
-    COLOR_CHOICES = [(None,'------')]+X_CHOICES_EXTRA 
-    AGG_CHOICES_EXTRA = X_CHOICES_EXTRA
-    Y_CONFIG = {
-        'total_qty': {
-            'val_list': ['qty_run',],
-            'func': lambda df: df['qty_run'].sum(),
-            'verbose': 'Total Quantity',
-        },
-        'percent_yield': {
-            'val_list': ['qty_run', 'qty_good'],
-            'func': lambda df: df['qty_good'].sum() / df['qty_run'].sum()*100,
-            'verbose': 'Percent Yield',
-        },
-    }
-    
