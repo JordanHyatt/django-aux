@@ -269,9 +269,65 @@ class PlotlyMixin:
         self.plot_df = DF()
         if self.check_qs_count() == False: 
             return
+
+        x = self.request.GET.get('x')
+        y = self.request.GET.get('y')
+        color = self.request.GET.get('color')
+        plot_type = self.request.GET.get('plot_type')
+        agg_by = self.request.GET.get('aggregate_by')
+        N_min = self.request.GET.get('N_min')        
+        if x == None:
+            return None
+        if N_min in [None, '']:
+            N_min = 0
+        N_min = int(N_min)
+        qs = self.object_list
+
         
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        choices = dict(
+            X_CHOICES=[('year', 'Year'), ('quarter', 'Quarter'),
+                       ('month', 'Month'), ('week', 'Week'), ('day', 'Day'), ],
+            Y_CHOICES=[],
+            COLOR_CHOICES=[(None, '--------')],
+            PLOT_TYPE_CHOICES=(
+                ('barg', 'Bar-Grouped'), ('bars', 'Bar-Stacked'),
+                ('line', 'Line'), ('scatter', 'Scatter'),
+                ('box', 'Box'), ('violin', 'Violin'),
+            ),
+            AGG_CHOICES=[
+                ('quarter', 'Quarter'), ('month',
+                                         'Month'), ('week', 'Week'), ('day', 'Day')
+            ]
+        )
 
+        for key, yd in self.Y_CONFIG.items():
+            choices.get('Y_CHOICES').append((key, yd.get('verbose')))
 
+        if hasattr(self, 'X_CHOICES'):
+            choices['X_CHOICES'] = self.X_CHOICES
+
+        if hasattr(self, 'X_CHOICES_EXTRA'):
+            for tup in self.X_CHOICES_EXTRA:
+                choices.get('X_CHOICES').append(tup)
+
+        if hasattr(self, 'COLOR_CHOICES'):
+            choices['COLOR_CHOICES'] = self.COLOR_CHOICES
+
+        if hasattr(self, 'COLOR_CHOICES_EXTRA'):
+            for tup in self.COLOR_CHOICES_EXTRA:
+                choices.get('COLOR_CHOICES').append(tup)
+
+        if hasattr(self, 'AGG_CHOICES'):
+            choices['AGG_CHOICES'] = self.AGG_CHOICES
+
+        if hasattr(self, 'AGG_CHOICES_EXTRA'):
+            for tup in self.AGG_CHOICES_EXTRA:
+                choices.get('AGG_CHOICES').append(tup)
+        self.choices = choices
+        kwargs['choices'] = choices
+        return kwargs
 
 class SinglePlotMixin:
     ''' This mixin creates a potly figure based on a FilterView that is using
@@ -295,7 +351,6 @@ class SinglePlotMixin:
         ### Get Plot Settings ###
         x = self.request.GET.get('x')
         y = self.request.GET.get('y')
-
         color = self.request.GET.get('color')
         plot_type = self.request.GET.get('plot_type')
         agg_by = self.request.GET.get('aggregate_by')
@@ -450,10 +505,8 @@ class SinglePlotMixin:
         if hasattr(self, 'AGG_CHOICES_EXTRA'):
             for tup in self.AGG_CHOICES_EXTRA:
                 choices.get('AGG_CHOICES').append(tup)
-
         self.choices = choices
         kwargs['choices'] = choices
-
         return kwargs
 
     def get_context_data(self, **kwargs):
