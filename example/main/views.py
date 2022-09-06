@@ -88,7 +88,8 @@ class SaleLookup(SaleBase, SaveFilterMixin, FilterView):
 class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
     filterset_class = SalePlotlyFilter
     template_name = 'django_aux/standard-plotly.html'
-    plot_width = 1300
+    plot_width = 1200
+    plot_height = 500
     X_CHOICES = [ ('category','Sale Category'), ('month', 'Month'), ('week', 'Week')]
 
 
@@ -104,7 +105,9 @@ class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
         }
     }
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Data Exploration'
+        print(context.get('some_var'))
         return context

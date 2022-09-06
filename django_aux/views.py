@@ -242,13 +242,14 @@ class CheckGroupPermMixin(UserPassesTestMixin):
 class PlotlyMixin:
     ''' This mixin generates a dynamic plotly plot, must be used with a filter that inherits PlotSettingsFilterMixin '''
     plot_width = 1000
+    plot_height = None
     max_records = 1_000_000_000
 
     def get_plot_qs(self):
         ''' '''
 
     def check_qs_count(self):
-        """_summary_
+        """ Performs a check to see if the queryset count is greater than the max allowed records
 
         Returns:
             bool: Indicting whether or the qs was too large
@@ -262,12 +263,104 @@ class PlotlyMixin:
 
     @staticmethod
     def add_values(value, vargs, vkwargs):
+        """Static method that takes a "value" determines its type and add it to vargs or vkwargs appropriately
+        Args:
+            value (Any): either a argument or keyword argument to be passed to the Queryset values method
+            vargs (list): list of arguments to be passed to Queryset values method
+            vkwargs (dict): dict of keyword arguments to be passed to Queryset values method
+
+        """        
         if type(value) == dict:
             vkwargs.update(value)
         else:
             vargs.append(value)
-        return value
 
+    def get_plot_settings(self):
+        """ Method pulls users plot settings from the get request and stores them as instance attributes """ 
+        self.x = self.request.GET.get('x')
+        self.y = self.request.GET.get('y')
+        self.yd = self.Y_CONFIG.get(self.y)
+        self.color = self.request.GET.get('color')
+        self.plot_type = self.request.GET.get('plot_type')
+        self.agg_by = self.request.GET.get('aggregate_by')
+        self.N_min = self.request.GET.get('N_min')   
+        if self.N_min in [None, '']:
+            self.N_min = 0
+        self.N_min = int(self.N_min)
+        ### Get x and y verbose
+        self.y_verbose = self.yd.get('verbose')
+        if self.y_verbose == None:
+            self.y_verbose = self.y
+        self.x_verbose = dict(self.choices.get('X_CHOICES')).get(self.x)
+        if self.x_verbose == None:
+            self.x_verbose = self.x
+
+    def get_vargs_vkwargs(self):
+        """Method estabishes and returns args and kwargs to be passed to the
+            Queryset values method
+
+        Returns:
+            tuple: Tuple containing vargs and vkwargs
+        """          
+        vargs = []
+        vkwargs = {} 
+        for label in [self.x, self.color, self.agg_by]:
+            if label in ['', None]:
+                continue
+            val = self.CHOICE_VALUES_MAP.get(label)
+            self.add_values(val, vargs, vkwargs) 
+        return vargs, vkwargs  
+
+    def get_akwargs(self):
+        """Method estabishes and returns the kwargs to be passed to the
+            Queryset annotate method
+
+        Returns:
+            dict: a dict containing the annotate kwargs
+        """          
+        agg_func = self.yd.get('agg_expr')
+        akwargs = {f'{self.y}':agg_func}
+        akwargs['N'] = Count('id')
+        return akwargs 
+
+    def get_grouped_qs(self):
+        """Method generates and returns the grouped/aggregated queryset to be used in the plot
+
+        Returns:
+            Queryset: The grouped queryset to be plotted
+        """        
+        qs = self.object_list
+        vargs, vkwargs = self.get_vargs_vkwargs()
+        akwargs = self.get_akwargs()
+        fkwargs = {'N__gte':self.N_min}
+        gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(**fkwargs).order_by(self.x)
+        return gqs
+
+    def get_px_args_kwargs_obj(self):
+        """Method generates and returns the args, kwargs and plotly.express object to be used in the plot
+
+        Returns:
+            tuple: tuple containg the args, kwargs and px object
+        """        
+        args = [self.plot_df]
+        kwargs = dict(x=self.x, y=self.y, width=self.plot_width, height=self.plot_height)
+        if self.color:
+            kwargs['color'] = self.color
+        if 'bar' in self.plot_type:
+            if self.plot_type.endswith('g'):
+                kwargs['barmode'] = 'group'
+            plot_obj = px.bar
+        if self.plot_type == 'box':
+            plot_obj = px.box
+        if self.plot_type == 'line':
+            plot_obj = px.line
+        if self.plot_type == 'violin':
+            kwargs['points'] = 'all'
+            kwargs['box'] = True
+            plot_obj = px.violin
+        if self.plot_type == 'scatter':
+            plot_obj = px.scatter
+        return args, kwargs, plot_obj
 
     def get_fig(self):
         """Method generates and returns a plotly Figure object using 
@@ -279,34 +372,18 @@ class PlotlyMixin:
         self.plot_df = DF()    
         if self.check_qs_count() == False: 
             return
-        x = self.request.GET.get('x')
-        y = self.request.GET.get('y')
-        color = self.request.GET.get('color')
-        plot_type = self.request.GET.get('plot_type')
-        agg_by = self.request.GET.get('aggregate_by')
-        N_min = self.request.GET.get('N_min')   
-
-
-        if x == None:
+        self.get_plot_settings()
+        if self.x == None:
             return None
-        if N_min in [None, '']:
-            N_min = 0
-        N_min = int(N_min)
-        qs = self.object_list
-
-        vargs = []
-        vkwargs = {} 
-        
-        for label in [x, color, agg_by]:
-            if label in ['', None]:
-                continue
-            val = self.CHOICE_VALUES_MAP.get(label)
-            self.add_values(val, vargs, vkwargs)
-        agg_func = self.Y_CONFIG.get(y).get('agg_expr')
-        akwargs = dict(y=agg_func)
-        akwargs['N'] = Count('id')
-        gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).order_by()
+        gqs = self.get_grouped_qs()
         self.plot_df = read_frame(gqs)
+        args, kwargs, plot_obj = self.get_px_args_kwargs_obj()
+        fig = plot_obj(*args, **kwargs)
+        fig.update_layout(
+            xaxis_title=self.x_verbose, yaxis_title=self.y_verbose
+        )
+        return offline.plot(fig, auto_open=False, output_type="div")
+
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
