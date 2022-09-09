@@ -4,8 +4,8 @@ import random
 from pandas import isna, Series, DataFrame as DF
 from math import ceil
 import json
-from django.utils.html import format_html
-
+from django.utils.html import mark_safe
+from django_pandas.io import read_frame
 
 class CheckFkColumn(tables.Column):
     ''' A column checks and displays the existence of a FK relationship '''
@@ -54,7 +54,7 @@ class CollapseColumnBase(tables.Column):
     def __init__(
         self, 
         *args, 
-        label='Show', label_accessor=None, label_extra='', style=None,
+        label='Show', label_accessor=None, label_extra='', style=None, nowrap=False,
         **kwargs   
     ):
         super().__init__(*args, **kwargs)
@@ -62,9 +62,10 @@ class CollapseColumnBase(tables.Column):
         self.label_accessor = label_accessor
         self.label_extra = label_extra
         self.style = style
+        self.nowrap = nowrap
 
     def get_style(self):
-        ''' method returns the style to be applied to the li tags '''
+        ''' method returns the style to be applied to the collapsable div '''
         if self.style:
             r = f'{self.style}'
         else:
@@ -99,26 +100,50 @@ class CollapseColumnBase(tables.Column):
                 </ul>
                 '''
             )
-            return format_html(rval)
+            return mark_safe(rval)
         else:
-            return ''    
+            return ''  
 
 class CollapseDataFrameColumn(CollapseColumnBase):
-    ''' Column renders a collapsable pandas DataFrame from a quesryset value '''
+    """Custom django-tables2 column that will render a queryset as a pandas.DataFrame using the 
+        pandas.DataFrame.to_html method in a collapsable div.
+
+    Args:
+        label (str, optional): text to be used on the collapse link. Defaults to 'Show'.
+        filter_args (list, optional): args passed to qs.filter method. Defaults to [].
+        filter_kwargs (dict, optional): kwargs passed to qs.filter method. Defaults to {}.
+        annotate_kwargs (dict, optional): kwargs passed to qs.annotate method. Ignored if use_read_frame=True.Defaults to {}.
+        values_args (list, optional): args passed to qs.values method. Ignored if use_read_frame=True. Defaults to [].
+        values_kwargs (dict, optional): args passed to qs.values method. Ignored if use_read_frame=True. Defaults to {}.
+        order_by_args (list, optional): args passed to qs.order_by method. Defaults to [].
+        limit (int, optional): limits the qs by slicing it qs[:limit]. Defaults to None.
+        use_read_frame (bool, optional): Boolean indicating if django_pandas.io.read_frame
+            should be used to convert the qs to a pandas.DataFrame. Defaults to True.
+        fieldnames (list, optional): Passed to django_pandas.io.read_frame fieldnames kwarg. 
+            ignored if user_read_frame==False. Defaults to None.
+        column_names (list, optional): Passed to django_pandas.io.read_frame column_names kwarg. 
+            ignored if user_read_frame==False. Defaults to None.
+        to_html_kwargs (dict, optional): kwargs to be passed to df.to_html method. 
+            Defaults to dict(classes = ['table-bordered', 'table-striped', 'table-sm'], index=False, justify='left').
+        to_html_kwargs_extra (dict, optional): kwargs to be added to to_html_kwargs. Defaults to {}.
+    """  
     def __init__(
         self, *args, 
         label='Show',
-        filter_kwargs = None, # kwargs to be passed to qs.filter method
-        filter_args = None, # args to be passed to qs.filter method
-        annotate_kwargs = None, # kwargs to be passed to qs.annotate method
-        values_kwargs = None, # kwargs to be passed to the qs.values method
-        values_args = None, # args to be passed to the qs.values method
-        order_by_args = None, # args to be passed to the qs.order_by method
-        limit = None, # Integer to limit the qs
-        to_html_kwargs = None, # kwargs to be passed to the DataFrame.to_html method
-        to_html_kwargs_extra = None, # kwargs to add to the default to_html_kwargs
+        filter_kwargs = None,
+        filter_args = None, 
+        annotate_kwargs = None, 
+        values_kwargs = None, 
+        values_args = None, 
+        order_by_args = None, 
+        limit = None, 
+        use_read_frame = True, 
+        fieldnames = None, 
+        column_names = None,
+        to_html_kwargs = None, 
+        to_html_kwargs_extra = None, 
         **kwargs   
-    ):
+    ):                
         super().__init__(*args, **kwargs)
         self.label = label
         self.limit = limit
@@ -128,38 +153,55 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         self.values_kwargs = {} if values_kwargs==None else values_kwargs
         self.values_args = [] if values_args==None else values_args
         self.order_by_args = [] if order_by_args==None else order_by_args
+        self.use_read_frame = use_read_frame
+        self.fieldnames = fieldnames
+        self.column_names = column_names
         if to_html_kwargs==None:
             self.to_html_kwargs = dict(
                 classes = ['table-bordered', 'table-striped', 'table-sm'],
                 index=False, justify='left'
             )                    
         else: 
-            self.to_html_kwargs = {} 
+            self.to_html_kwargs = to_html_kwargs
         self.to_html_kwargs_extra = {} if to_html_kwargs_extra==None else to_html_kwargs_extra
         self.to_html_kwargs.update(self.to_html_kwargs_extra)
+        self.no_wrap=False
          
-
+    def get_read_frame_kwargs(self):
+        """ Reuturns the kwargs to be passed to read_frame function """ 
+        kwargs = {}
+        if self.fieldnames:
+            kwargs['fieldnames'] = self.fieldnames
+        if self.column_names:
+            kwargs['column_names'] = self.column_names
+        return kwargs       
 
     def get_queryset(self, value):
         ''' method applies user passed kwargs/args to qs methods '''
-        qs = value.annotate(
-            **self.annotate_kwargs
-        ).filter(
+        qs = value.filter(
             *self.filter_args, **self.filter_kwargs
-        ).values(
-            *self.values_args, **self.values_kwargs
         ).order_by(*self.order_by_args)
+        if self.use_read_frame == False:
+            qs = qs.annotate(
+                **self.annotate_kwargs
+            ).values(
+                *self.values_args, **self.values_kwargs
+            )
         return qs if self.limit==None else qs[:self.limit]
 
     def get_df_html(self, qs):
-        return DF(qs).to_html(**self.to_html_kwargs)
+        if self.use_read_frame:
+            df = read_frame(qs, **self.get_read_frame_kwargs())
+        else:
+            df = DF(qs)
+        return df.to_html(**self.to_html_kwargs)
 
     def render(self, value, record):
         qs = self.get_queryset(value)
         if qs.count() == 0: 
             val = None
         else:
-            val = self.get_df_html(qs)
+            val= self.get_df_html(qs)
         return self.final_render(value=value, record=record, val=val)
 
 
@@ -170,7 +212,6 @@ class CollapseColumn(CollapseColumnBase):
     def __init__(
         self, *args, hyperlink=False, href_attr=None,
         iterable=False, str_attr=None, order_by=None, fkwargs=None, property_attr=None, dictionary=False,
-        nowrap=False,
         **kwargs
     ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
         super().__init__(*args, **kwargs)
@@ -180,7 +221,6 @@ class CollapseColumn(CollapseColumnBase):
         self.iterable = iterable
         self.str_attr = str_attr
         self.order_by = order_by
-        self.nowrap = nowrap
         self.fkwargs = fkwargs
         self.property_attr = property_attr
         self.dictionary = dictionary

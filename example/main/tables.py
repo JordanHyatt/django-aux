@@ -23,9 +23,18 @@ class PersonTable(tables.Table):
         accessor='history.all', values_args=hist_values_args, values_kwargs=hist_values_kwargs,
         filter_args=hist_filter_args, filter_kwargs=hist_filter_kwargs,
         annotate_kwargs=hist_annotate_kwargs,
-        order_by_args=['-history_date'], limit=5,
+        order_by_args=['-history_date'], limit=10,
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra
     )
+    hist_read_fram = CollapseDataFrameColumn(
+        accessor='history.all', values_args=hist_values_args, values_kwargs=hist_values_kwargs,
+        filter_args=hist_filter_args, filter_kwargs=hist_filter_kwargs,
+        order_by_args=['-history_date'],
+        use_read_frame=True, limit=10,
+        #fieldnames=['history_id', 'history_user', ],
+        to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra,
+    )
+
     adjectives = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives') # regular iterable
     adjectives_links = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
     adjectives_dyn_labels = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
