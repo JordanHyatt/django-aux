@@ -288,7 +288,7 @@ class PlotlyMixin:
             self.N_min = 0
         self.N_min = int(self.N_min)
         ### Get x and y verbose
-        self.y_verbose = self.yd.get('verbose')
+        self.y_verbose = self.yd.get('verbose') if self.yd else ''
         if self.y_verbose == None:
             self.y_verbose = self.y
         self.x_verbose = dict(self.choices.get('X_CHOICES')).get(self.x)
@@ -451,7 +451,7 @@ class SinglePlotMixin:
         plot_type = self.request.GET.get('plot_type')
         agg_by = self.request.GET.get('aggregate_by')
         N_min = self.request.GET.get('N_min')
-        if x == None:
+        if x == None or y == None:
             return None
         if N_min in [None, '']:
             N_min = 0
