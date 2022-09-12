@@ -90,11 +90,12 @@ class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
     template_name = 'django_aux/standard-plotly.html'
     plot_width = 1200
     plot_height = 500
-    X_CHOICES = [ ('category','Sale Category'), ('month', 'Month'), ('week', 'Week')]
+    X_CHOICES = [ ('category','Sale Category'), ('buyer', 'Buyer'), ('month', 'Month'), ('week', 'Week')]
 
 
     CHOICE_VALUES_MAP = {
         'category': 'category',
+        'buyer':'buyer',
         'week': dict(week=TruncWeek('dtg')),
         'month': dict(month=TruncMonth('dtg')),
     }

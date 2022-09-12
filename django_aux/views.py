@@ -2,6 +2,7 @@ from django_tables2 import SingleTableMixin
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.db.models import Q
 from pandas import isna, DataFrame as DF, to_datetime
 import inspect
 from django.contrib import messages
@@ -245,8 +246,6 @@ class PlotlyMixin:
     plot_height = None
     max_records = 1_000_000_000
 
-    def get_plot_qs(self):
-        ''' '''
 
     def check_qs_count(self):
         """ Performs a check to see if the queryset count is greater than the max allowed records
@@ -333,7 +332,8 @@ class PlotlyMixin:
         vargs, vkwargs = self.get_vargs_vkwargs()
         akwargs = self.get_akwargs()
         fkwargs = {'N__gte':self.N_min}
-        gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(**fkwargs).order_by(self.x)
+        fargs = [~Q(**{f'{self.x}':None}), ~Q(**{f'{self.color}':None}), ~Q(**{f'{self.agg_by}':None})]
+        gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(*fargs, **fkwargs).order_by(self.x)
         return gqs
 
     def get_px_args_kwargs_obj(self):
@@ -373,7 +373,7 @@ class PlotlyMixin:
         if self.check_qs_count() == False: 
             return
         self.get_plot_settings()
-        if self.x == None:
+        if self.x == None or self.y == None:
             return None
         gqs = self.get_grouped_qs()
         self.plot_df = read_frame(gqs)

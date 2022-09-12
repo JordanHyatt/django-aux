@@ -138,8 +138,8 @@ class Sale(models.Model):
 
     dtg = models.DateTimeField()
     amount = models.FloatField()
-    buyer = models.ForeignKey('Person', on_delete=models.CASCADE)
-    category = models.CharField(max_length=200)
+    buyer = models.ForeignKey('Person', on_delete=models.CASCADE, null=True)
+    category = models.CharField(max_length=200, null=True)
 
     def __str__(self) -> str:
         return f'{self.buyer} | {self.dtg} | {self.category} | {self.amount}'
