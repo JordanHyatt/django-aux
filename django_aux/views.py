@@ -276,17 +276,17 @@ class PlotlyMixin:
 
     def get_plot_settings(self):
         """ Method pulls users plot settings from the get request and stores them as instance attributes """ 
-        self.x = self.request.GET.get('x')
-        self.y = self.request.GET.get('y')
-        self.yd = self.Y_CONFIG.get(self.y)
-        self.color = self.request.GET.get('color')
-        self.plot_type = self.request.GET.get('plot_type')
-        self.agg_by = self.request.GET.get('aggregate_by')
-        self.N_min = self.request.GET.get('N_min')   
+        attrs = ['x','y','color','plot_type','aggregate_by','N_min','y_min','y_max']
+        for attr in attrs:
+            val = self.request.GET.get(attr)
+            if val == '': val=None
+            setattr(self,attr,val)
+            print(getattr(self,attr))
         if self.N_min in [None, '']:
             self.N_min = 0
         self.N_min = int(self.N_min)
         ### Get x and y verbose
+        self.yd = self.Y_CONFIG.get(self.y)
         self.y_verbose = self.yd.get('verbose') if self.yd else ''
         if self.y_verbose == None:
             self.y_verbose = self.y
@@ -303,8 +303,8 @@ class PlotlyMixin:
         """          
         vargs = []
         vkwargs = {} 
-        for label in [self.x, self.color, self.agg_by]:
-            if label in ['', None]:
+        for label in [self.x, self.color, self.aggregate_by]:
+            if label == None:
                 continue
             val = self.CHOICE_VALUES_MAP.get(label)
             self.add_values(val, vargs, vkwargs) 
@@ -332,9 +332,11 @@ class PlotlyMixin:
         vargs, vkwargs = self.get_vargs_vkwargs()
         akwargs = self.get_akwargs()
         fkwargs = {'N__gte':self.N_min}
+        if self.y_min: fkwargs[f'{self.y}__gte'] = self.y_min
+        if self.y_max: fkwargs[f'{self.y}__lte'] = self.y_max
         fargs = [~Q(**{f'{self.x}':None})]
-        if self.color not in [None, '']: fargs.append(~Q(**{f'{self.color}':None}))
-        if self.agg_by not in [None, '']: fargs.append(~Q(**{f'{self.agg_by}':None}))
+        if self.color != None: fargs.append(~Q(**{f'{self.color}':None}))
+        if self.aggregate_by != None: fargs.append(~Q(**{f'{self.aggregate_by}':None}))
         gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(*fargs, **fkwargs).order_by(self.x)
         return gqs
 

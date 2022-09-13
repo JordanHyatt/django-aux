@@ -45,14 +45,13 @@ class FilterSetBase(FilterSet):
         )
 
 
-
 class PlotSettingsFilterMixin(FilterSet):
     ''' The purpose of this filter is to add in a standard form for plot
     settings to a normal model filter'''
 
     def filter_queryset(self, queryset):
         qdict = self.form.cleaned_data.copy()
-        for key in ['x', 'y', 'plot_type', 'color', 'aggregate_by', 'N_min']:
+        for key in ['x', 'y', 'plot_type', 'color', 'aggregate_by', 'N_min', 'y_min', 'y_max']:
             if key in qdict.keys():
                 qdict.pop(key)
         for name, value in qdict.items():
@@ -66,18 +65,14 @@ class PlotSettingsFilterMixin(FilterSet):
 
     def __init__(self, *args, choices=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.form.fields['x'] = forms.ChoiceField(
-            choices=choices.get('X_CHOICES'))
-        self.form.fields['y'] = forms.ChoiceField(
-            choices=choices.get('Y_CHOICES'))
-        self.form.fields['plot_type'] = forms.ChoiceField(
-            choices=choices.get('PLOT_TYPE_CHOICES'))
-        self.form.fields['color'] = forms.ChoiceField(
-            choices=choices.get('COLOR_CHOICES'), required=False)
-        self.form.fields['aggregate_by'] = forms.ChoiceField(
-            choices=choices.get('AGG_CHOICES'), required=False)
-        self.form.fields['N_min'] = forms.IntegerField(
-            initial=0, required=False, label='Sample Size Min')
+        self.form.fields['x'] = forms.ChoiceField(choices=choices.get('X_CHOICES'))
+        self.form.fields['y'] = forms.ChoiceField(choices=choices.get('Y_CHOICES'))
+        self.form.fields['plot_type'] = forms.ChoiceField(choices=choices.get('PLOT_TYPE_CHOICES'))
+        self.form.fields['color'] = forms.ChoiceField(choices=choices.get('COLOR_CHOICES'), required=False)
+        self.form.fields['aggregate_by'] = forms.ChoiceField(choices=choices.get('AGG_CHOICES'), required=False)
+        self.form.fields['N_min'] = forms.IntegerField(initial=0, required=False, label='Sample Size Min')
+        self.form.fields['y_min'] = forms.FloatField(required=False, label='Y Min Value')
+        self.form.fields['y_max'] = forms.FloatField(required=False, label='Y Max Value')
         self.extra_layout = Layout(
             Fieldset('Plot Settings',
                 Row(
@@ -86,8 +81,9 @@ class PlotSettingsFilterMixin(FilterSet):
                     Div('y', css_class='ml-2 col-flex'),
                     Div('color', css_class='ml-2 col-flex'),
                     Div('plot_type', css_class='ml-2 col-flex'),
-                    Div('N_min', css_class='ml-2 col-flex',
-                        style='width:175px'),
+                    Div('N_min', css_class='ml-2 col-flex',style='width:125px'),
+                    Div('y_min', css_class='ml-2 col-flex',style='width:125px'),
+                    Div('y_max', css_class='ml-2 col-flex',style='width:125px'),
                 ),
             ),
         )
