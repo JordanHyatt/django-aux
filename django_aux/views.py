@@ -332,7 +332,9 @@ class PlotlyMixin:
         vargs, vkwargs = self.get_vargs_vkwargs()
         akwargs = self.get_akwargs()
         fkwargs = {'N__gte':self.N_min}
-        fargs = [~Q(**{f'{self.x}':None}), ~Q(**{f'{self.color}':None}), ~Q(**{f'{self.agg_by}':None})]
+        fargs = [~Q(**{f'{self.x}':None})]
+        if self.color not in [None, '']: fargs.append(~Q(**{f'{self.color}':None}))
+        if self.agg_by not in [None, '']: fargs.append(~Q(**{f'{self.agg_by}':None}))
         gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(*fargs, **fkwargs).order_by(self.x)
         return gqs
 
