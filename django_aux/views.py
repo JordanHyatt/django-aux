@@ -102,7 +102,6 @@ class InlineFormsetMixin:
             #user defined a redirect url for the addlines btn, default behavior sends pk as arg
             return reverse_lazy(self.addlines_url, kwargs={'pk':self.object.pk})
         elif 'addlines' in self.request.POST and not self.addlines_url:
-            print('\n\n\nI am here\n\n\n')
             #adding lines to form but no redirect url given. Use default behavior
             return self.request.path_info
         else:
@@ -202,7 +201,6 @@ class RedirectPrevMixin:
 
     def get_success_url(self):
         ''' If next was stored redirect there, otherwise return super() '''
-        print('\n\n\nI am REdirect prev\n\n\n')
         next = self.request.session.get('next')
         if next: 
             return next
@@ -281,7 +279,6 @@ class PlotlyMixin:
             val = self.request.GET.get(attr)
             if val == '': val=None
             setattr(self,attr,val)
-            print(getattr(self,attr))
         if self.N_min in [None, '']:
             self.N_min = 0
         self.N_min = int(self.N_min)
