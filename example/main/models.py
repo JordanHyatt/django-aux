@@ -10,6 +10,8 @@ from factory.fuzzy import FuzzyDateTime, FuzzyInteger, FuzzyText, FuzzyFloat, Fu
 import datetime as dt
 from django.utils import timezone
 
+
+
 class Organization(models.Model):
     ''' Intance of this class represents a generic organization '''
     DEFAULTS = [

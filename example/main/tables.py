@@ -26,12 +26,13 @@ class PersonTable(tables.Table):
         order_by_args=['-history_date'], limit=10,
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra
     )
-    hist_read_fram = CollapseDataFrameColumn(
+    hist_read_frame = CollapseDataFrameColumn(
         accessor='history.all', values_args=hist_values_args, values_kwargs=hist_values_kwargs,
         filter_args=hist_filter_args, filter_kwargs=hist_filter_kwargs,
         order_by_args=['-history_date'],
         use_read_frame=True, limit=10,
-        #fieldnames=['history_id', 'history_user', ],
+        fieldnames=['history_id', 'history_user', 'history_relation__adjectives__word'],
+        column_names=['history_id', 'history_user', 'adjective'],
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra,
     )
 
