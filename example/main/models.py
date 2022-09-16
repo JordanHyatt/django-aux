@@ -9,7 +9,8 @@ from factory import Faker, Iterator, post_generation, LazyAttribute, SubFactory
 from factory.fuzzy import FuzzyDateTime, FuzzyInteger, FuzzyText, FuzzyFloat, FuzzyChoice
 import datetime as dt
 from django.utils import timezone
-
+from django_aux.models import ModelBase
+import django_aux_timeperiods as dat
 
 
 class Organization(models.Model):
@@ -142,9 +143,23 @@ class Sale(models.Model):
     amount = models.FloatField()
     buyer = models.ForeignKey('Person', on_delete=models.CASCADE, null=True)
     category = models.CharField(max_length=200, null=True)
+    salemonth = models.ForeignKey('SaleMonth', on_delete=models.SET_NULL, null=True)
+
+    # def set_salemonth(self):
+    #     ''' Method sets the salemonth FK attribute. Creates new instance if needed '''
+    #     month, _ = dat.models.Month.get_or_create(year_num=self.dtg.year, month_num=self.dtg.month)
+    #     self.salemonth, _ = SaleMonth.objects.get_or_create(month=month)
 
     def __str__(self) -> str:
         return f'{self.buyer} | {self.dtg} | {self.category} | {self.amount}'
+
+
+class SaleMonth(ModelBase):
+    ''' Instance of this class holds information concerning sale info for a given month '''
+    month = models.ForeignKey('django_aux_timeperiods.Month', on_delete=models.CASCADE)
+    actual = models.DecimalField(max_digits=20, decimal_places=10)
+    forecasted = models.DecimalField(max_digits=20, decimal_places=10)
+
 
 class SaleFactory(DjangoModelFactory):
     class Meta:
@@ -153,4 +168,5 @@ class SaleFactory(DjangoModelFactory):
     amount = FuzzyFloat(1,10_000)
     category = FuzzyChoice(dict(Sale.CAT_CHOICES).keys())
     dtg = FuzzyDateTime(timezone.now()-dt.timedelta(1000))
+
 

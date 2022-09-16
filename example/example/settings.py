@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'simple_history',
     'bootstrap4',
     'django_aux',
+    'django_aux_timeperiods',
     'main.apps.MainConfig',
 ]
 
