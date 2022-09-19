@@ -113,7 +113,7 @@ class Week(models.Model):
         Instances should be initialized with year_num and week_num.  Save method 
         will derive the other attributes
     '''
-    WEEK_NUM_CHOICES = [(i,str(i)) for i in range(1,53)]
+    WEEK_NUM_CHOICES = [(i,str(i)) for i in range(1,54)]
     date = models.DateField()
     year_num = models.PositiveSmallIntegerField()
     week_num = models.PositiveSmallIntegerField(choices=WEEK_NUM_CHOICES)
