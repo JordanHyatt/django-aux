@@ -14,6 +14,12 @@ class Year(models.Model):
     year_num = models.PositiveSmallIntegerField(unique=True)
     is_leap_year = models.BooleanField()
 
+    @classmethod
+    def get_or_create_from_date(cls, date):
+        ''' Classmethod will get or create a year object based on the passed date '''
+        sdtg = pd.Period(date, freq='Y').start_time
+        return cls.objects.get_or_create(year_num=sdtg.year)
+
     @property
     def period(self):
         ''' property returns a pandas period object representing this instance '''
@@ -34,6 +40,8 @@ class Year(models.Model):
 
     def __str__(self):
         return str(self.period)
+
+
 
 class Month(models.Model):
     ''' An instance of this model represents a month in the Gregorian Calendar.
@@ -60,6 +68,12 @@ class Month(models.Model):
 
     class Meta:
         constraints = [UniqueConstraint(fields=['year_num', 'month_num'], name='unique_month')]
+
+    @classmethod
+    def get_or_create_from_date(cls, date):
+        ''' Classmethod will get or create a month object based on the passed date '''
+        sdtg = pd.Period(date, freq='M').start_time
+        return cls.objects.get_or_create(year_num=sdtg.year, month_num=sdtg.month)
 
     @property
     def period(self):

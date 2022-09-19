@@ -27,3 +27,6 @@ class Country(models.Model):
                     alpha2=alpha2, num=tup.num, name=tup.name
                 )
             )
+
+    def __str__(self):
+        return f'{self.alpha3}'

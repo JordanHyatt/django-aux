@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'django_aux',
     'django_aux_timeperiods',
+    'django_aux_geo',
     'main.apps.MainConfig',
 ]
 
