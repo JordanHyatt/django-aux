@@ -3,9 +3,64 @@ from django.db import models
 import datetime as dt
 from django.db.models import UniqueConstraint
 import pandas as pd
+from zoneinfo import ZoneInfo
+
+class TimePeriodBase(models.Model):
+    ''' Base class to hold common methods for TimePeriod models '''
+    class Meta:
+        abstract = True
+
+    @property
+    def period(self):
+        ''' property returns a pandas period object representing this instance '''
+        cname = self.__class__.__name__
+        if cname == 'Year':
+            return pd.Period(year=self.year_num, freq='Y')
+        elif cname == 'Month':
+            return pd.Period(year=self.year_num, month=self.month_num, freq='M')
+        elif cname == 'Week':
+            edate = self.end_dates[self.week_num-1]
+            return pd.Period(edate, freq='W')
+        elif cname == 'Day':
+            return pd.Period(self.date, freq='D')
+
+    @classmethod
+    def get_or_create_from_date(cls, date):
+        ''' Classmethod will get or create a timeperiod object based on the passed date '''
+        cname = cls.__name__
+        freq_map = {'Year':'Y', 'Month':'M', 'Week':'W', 'Day':'D'}
+        sdtg = pd.Period(date, freq=freq_map[cname]).start_time
+        if cname == 'Year':
+            return cls.objects.get_or_create(year_num=sdtg.year)
+        elif cname == 'Month':
+            return cls.objects.get_or_create(year_num=sdtg.year, month_num=sdtg.month)
+        elif cname == 'Week':
+            return cls.objects.get_or_create(year_num=sdtg.year, week_num=sdtg.week)
+        elif cname == 'Day':
+            return cls.objects.get_or_create(date=date)
+
+    def get_rel_status(self, dtg=None):
+        ''' Method returns the status of a TimePeriod (past, present, future) relative to the passed datetime '''
+        if dtg==None:
+            dtg = dt.datetime.now()
+        try:
+            tz = ZoneInfo(dtg.tzname())
+        except TypeError:
+            tz = None
+        sdtg = self.period.start_time
+        edtg = self.period.end_time
+        if tz:
+            sdtg = sdtg.tz_localize(tz)
+            edtg = edtg.tz_localize(tz)
+        if dtg < sdtg:
+            return 'future'
+        elif sdtg <= dtg <= edtg:
+            return 'present'
+        else:
+            return 'past'
 
 
-class Year(models.Model):
+class Year(TimePeriodBase):
     ''' An instance of this model represents a year in the Gregorian Calendar.
         Instances should be initialized with year_num.  Save method 
         will derive the other attributes
@@ -13,17 +68,6 @@ class Year(models.Model):
     date = models.DateField()
     year_num = models.PositiveSmallIntegerField(unique=True)
     is_leap_year = models.BooleanField()
-
-    @classmethod
-    def get_or_create_from_date(cls, date):
-        ''' Classmethod will get or create a year object based on the passed date '''
-        sdtg = pd.Period(date, freq='Y').start_time
-        return cls.objects.get_or_create(year_num=sdtg.year)
-
-    @property
-    def period(self):
-        ''' property returns a pandas period object representing this instance '''
-        return pd.Period(year=self.year_num, freq='Y')
 
     def set_date(self):
         ''' Method to set the date attribute '''
@@ -43,7 +87,7 @@ class Year(models.Model):
 
 
 
-class Month(models.Model):
+class Month(TimePeriodBase):
     ''' An instance of this model represents a month in the Gregorian Calendar.
         Instances should be initialized with year_num and month_num.  Save method 
         will derive the other attributes
@@ -69,16 +113,6 @@ class Month(models.Model):
     class Meta:
         constraints = [UniqueConstraint(fields=['year_num', 'month_num'], name='unique_month')]
 
-    @classmethod
-    def get_or_create_from_date(cls, date):
-        ''' Classmethod will get or create a month object based on the passed date '''
-        sdtg = pd.Period(date, freq='M').start_time
-        return cls.objects.get_or_create(year_num=sdtg.year, month_num=sdtg.month)
-
-    @property
-    def period(self):
-        ''' property returns a pandas period object representing this instance '''
-        return pd.Period(year=self.year_num, month=self.month_num, freq='M')
 
     def set_date(self):
         ''' Method to derive the date attribute '''
@@ -106,7 +140,7 @@ class Month(models.Model):
     def __str__(self):
         return str(self.period)
 
-class Week(models.Model):
+class Week(TimePeriodBase):
     ''' An instance of this model represents a week in the Gregorian Calendar.
         Numbering convention follows ISO 8601. Weeks always start on Monday and 
         week 1 of the year is the first week this the majority of its 7 days in January.
@@ -121,12 +155,6 @@ class Week(models.Model):
     class Meta:
         constraints = [UniqueConstraint(fields=['year_num', 'week_num'], name='unique_week')]
 
-    @classmethod
-    def get_or_create_from_date(cls, date):
-        ''' Classmethod will get or create a week object based on the passed date '''
-        sdtg = pd.Period(date, freq='W').start_time
-        return cls.objects.get_or_create(year_num=sdtg.year, week_num=sdtg.week)
-
     @property
     def end_dates(self):
         ''' property returns a list of week end dates for the year of this instance '''
@@ -138,12 +166,6 @@ class Week(models.Model):
         if end.week < 52:
             dates = dates[:-1]
         return dates
-
-    @property
-    def period(self):
-        ''' property returns a pandas period object representing this instance '''
-        edate = self.end_dates[self.week_num-1]
-        return pd.Period(edate, freq='W')
 
     def set_date(self):
         ''' Method to derive the date attribute '''
@@ -159,10 +181,10 @@ class Week(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.period)
+        return f'{self.year_num} W{str(self.week_num).zfill(2)}'
 
 
-class Day(models.Model):
+class Day(TimePeriodBase):
     ''' An instance of this model represents a day in the Gregorian Calendar.
         Instances should be initialized with a date.  Save method 
         will derive the other attributes
@@ -171,10 +193,6 @@ class Day(models.Model):
     week = models.ForeignKey('Week', on_delete=models.SET_NULL, null=True)
     date = models.DateField(unique=True)
 
-    @property
-    def period(self):
-        ''' property returns a pandas period object representing this instance '''
-        return pd.Period(self.date, freq='D')
 
     def set_month(self):
         ''' Method sets the year FK attribute. Creates the instance if necessary '''
