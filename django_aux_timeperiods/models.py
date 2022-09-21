@@ -43,10 +43,7 @@ class TimePeriodBase(models.Model):
         ''' Method returns the status of a TimePeriod (past, present, future) relative to the passed datetime '''
         if dtg==None:
             dtg = dt.datetime.now()
-        try:
-            tz = ZoneInfo(dtg.tzname())
-        except TypeError:
-            tz = None
+        tz = dtg.tzinfo
         sdtg = self.period.start_time
         edtg = self.period.end_time
         if tz:
