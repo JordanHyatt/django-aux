@@ -1,4 +1,5 @@
 
+from time import timezone
 from django.db import models
 import datetime as dt
 from django.db.models import UniqueConstraint
@@ -40,9 +41,10 @@ class TimePeriodBase(models.Model):
             return cls.objects.get_or_create(date=date)
 
     @classmethod
-    def get_or_create_n_from_present(cls, tzinfo=None):
-        ''' classmethod retreives a period object that is "n" periods removed from present for a given tzinfo '''
-        
+    def get_or_create_current_period(cls):
+        ''' Classmethod will create a timeperiod object that encompasses today '''
+        today = dt.datetime.now().date()
+        cls.get_or_create_from_date(today)
 
     def get_rel_status(self, dtg=None):
         ''' Method returns the status of a TimePeriod (past, present, future) relative to the passed datetime '''
