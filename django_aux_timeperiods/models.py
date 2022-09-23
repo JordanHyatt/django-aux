@@ -1,5 +1,3 @@
-
-from time import timezone
 from django.db import models
 import datetime as dt
 from django.db.models import UniqueConstraint
@@ -8,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 class TimePeriodBase(models.Model):
     ''' Base class to hold common methods for TimePeriod models '''
+    freq_map = {'Year':'Y', 'Month':'M', 'Week':'W', 'Day':'D'}
+
     class Meta:
         abstract = True
 
@@ -29,8 +29,7 @@ class TimePeriodBase(models.Model):
     def get_or_create_from_date(cls, date):
         ''' Classmethod will get or create a timeperiod object based on the passed date '''
         cname = cls.__name__
-        freq_map = {'Year':'Y', 'Month':'M', 'Week':'W', 'Day':'D'}
-        sdtg = pd.Period(date, freq=freq_map[cname]).start_time
+        sdtg = pd.Period(date, freq=cls.freq_map[cname]).start_time
         if cname == 'Year':
             return cls.objects.get_or_create(year_num=sdtg.year)
         elif cname == 'Month':
@@ -45,6 +44,25 @@ class TimePeriodBase(models.Model):
         ''' Classmethod will create a timeperiod object that encompasses today '''
         today = dt.datetime.now().date()
         cls.get_or_create_from_date(today)
+
+    @classmethod
+    def get_or_create_n_from_current(cls, n=0, tzinfo=None):
+        ''' Retreives a TimePeriod object n periods from current period '''
+        now = dt.datetime.now()
+        if tzinfo:
+            now = now.astimezone(tzinfo)
+        cperiod = pd.Period(now, freq=cls.freq_map[cls.__name__])
+        if n==0:
+            return cls.get_or_create_from_date(cperiod.start_time.date())
+        elif n < 0:
+            kwargs = {'end':cperiod}
+            i = 0
+        elif n > 0:
+            kwargs = {'start':cperiod}
+            i = -1
+        period = pd.period_range(**kwargs, periods=abs(n)+1)[i]
+        return cls.get_or_create_from_date(period.start_time.date())
+
 
     def get_rel_status(self, dtg=None):
         ''' Method returns the status of a TimePeriod (past, present, future) relative to the passed datetime '''
