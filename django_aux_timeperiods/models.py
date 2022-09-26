@@ -43,7 +43,7 @@ class TimePeriodBase(models.Model):
     def get_or_create_current_period(cls):
         ''' Classmethod will create a timeperiod object that encompasses today '''
         today = dt.datetime.now().date()
-        cls.get_or_create_from_date(today)
+        return cls.get_or_create_from_date(today)
 
     @classmethod
     def get_or_create_n_from_current(cls, n=0, tzinfo=None):
@@ -106,8 +106,6 @@ class Year(TimePeriodBase):
 
     def __str__(self):
         return str(self.period)
-
-
 
 class Month(TimePeriodBase):
     ''' An instance of this model represents a month in the Gregorian Calendar.
