@@ -42,6 +42,7 @@ class TimePeriodBase(models.Model):
     @classmethod
     def get_or_create_current_period(cls):
         ''' Classmethod will create a timeperiod object that encompasses today '''
+        #KEVO NEED TO MAKE TZ CAPABLE!
         today = dt.datetime.now().date()
         return cls.get_or_create_from_date(today)
 

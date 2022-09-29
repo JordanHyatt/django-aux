@@ -17,8 +17,10 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
         ''' test TimePeriods get_or_create_n_from_current method '''
         for i in range(-2,3):
             month,_ = Month.get_or_create_n_from_current(n=i)
+            target = (dt.datetime.now().month + i%12)
+            if target > 12: target = target-12
             self.assertEqual(
-                month.period.month, dt.datetime.now().month + i
+                month.period.month, target
             ) #JMAN/KEVO Test with other classes?!?!
 
     def test_get_or_create_from_date(self):
