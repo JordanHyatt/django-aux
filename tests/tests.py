@@ -53,3 +53,28 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
                 pd.Period.now(cls.freq_map[cls.__name__]),
                 cls.get_or_create_current_period()[0].period
             )
+
+class TestMonth(TestCase):
+    ''' A Test Class for the Month model '''
+
+    def test_set_year(self):
+        month,_ = Month.get_or_create_current_period()
+        self.assertEqual(dt.datetime.now().year, month.year.year_num)
+
+class TestWeek(TestCase):
+    ''' A Test Class for the Week model '''
+
+    def test_set_year(self):
+        week,_ = Week.get_or_create_current_period()
+        self.assertEqual(dt.datetime.now().year, week.year.year_num)
+
+class TestDay(TestCase):
+    ''' A Test Class for the Day model '''
+
+    def test_set_month(self):
+        day,_ = Day.get_or_create_current_period()
+        self.assertEqual(pd.Period.now('M'), day.month.period)
+
+    def test_set_week(self):
+        day,_ = Day.get_or_create_current_period()
+        self.assertEqual(pd.Period.now('W'), day.week.period)
