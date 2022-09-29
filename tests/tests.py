@@ -59,14 +59,14 @@ class TestMonth(TestCase):
 
     def test_set_year(self):
         month,_ = Month.get_or_create_current_period()
-        self.assertEqual(dt.datetime.now().year, month.year.year_num)
+        self.assertEqual(pd.Period.now('Y'), month.year.period)
 
 class TestWeek(TestCase):
     ''' A Test Class for the Week model '''
 
     def test_set_year(self):
         week,_ = Week.get_or_create_current_period()
-        self.assertEqual(dt.datetime.now().year, week.year.year_num)
+        self.assertEqual(pd.Period.now('Y'), week.year.period)
 
 class TestDay(TestCase):
     ''' A Test Class for the Day model '''
