@@ -3,7 +3,7 @@ import os
 SECRET_KEY = 'fake-test-key'
 
 INSTALLED_APPS = [
-    "tests", "django_aux_timeperiods",
+    "tests", "django_aux_timeperiods", "django_aux_geo"
 ]
 
 
