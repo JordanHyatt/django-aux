@@ -1,5 +1,5 @@
 import django_tables2 as tables
-from django.db.models import F, Q
+from django.db.models import F, Q, Sum
 from django_tables2 import A
 from main.models import *
 from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn
@@ -20,10 +20,19 @@ to_html_kwargs_extra = dict(formatters = {'salary': lambda val: f'${val:,.2f}'})
 class PersonTable(tables.Table):
     ''' Table for displaying fixed Schedule instances '''
     hist = CollapseDataFrameColumn(
+        use_read_frame=False,
         accessor='history.all', values_args=hist_values_args, values_kwargs=hist_values_kwargs,
         filter_args=hist_filter_args, filter_kwargs=hist_filter_kwargs,
         annotate_kwargs=hist_annotate_kwargs,
         order_by_args=['-history_date'], limit=10,
+        to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra
+    )
+    hist_agg = CollapseDataFrameColumn(
+        accessor='history.all', 
+        use_read_frame = False,
+        group_by = True,
+        values_kwargs=dict(org_name = F('org__name')),
+        annotate_kwargs=dict(salary_sum = Sum('salary')),
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra
     )
     hist_read_frame = CollapseDataFrameColumn(

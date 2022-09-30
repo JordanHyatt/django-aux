@@ -110,6 +110,8 @@ class CollapseDataFrameColumn(CollapseColumnBase):
 
     Args:
         label (str, optional): text to be used on the collapse link. Defaults to 'Show'.
+        group_by (bool, optional): Determines the order that values and annotate methods are applied to the qs. 
+            If False: annoate then values. If True: values then annotate. Defaults to False.
         filter_args (list, optional): args passed to qs.filter method. Defaults to [].
         filter_kwargs (dict, optional): kwargs passed to qs.filter method. Defaults to {}.
         annotate_kwargs (dict, optional): kwargs passed to qs.annotate method. Ignored if use_read_frame=True.Defaults to {}.
@@ -130,6 +132,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
     def __init__(
         self, *args, 
         label='Show',
+        group_by = False,
         filter_kwargs = None,
         filter_args = None, 
         annotate_kwargs = None, 
@@ -147,6 +150,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         super().__init__(*args, **kwargs)
         self.label = label
         self.limit = limit
+        self.group_by = group_by
         self.filter_kwargs = {} if filter_kwargs==None else filter_kwargs
         self.filter_args = [] if filter_args==None else filter_args
         self.annotate_kwargs = {} if annotate_kwargs==None else annotate_kwargs
@@ -182,11 +186,18 @@ class CollapseDataFrameColumn(CollapseColumnBase):
             *self.filter_args, **self.filter_kwargs
         ).order_by(*self.order_by_args)
         if self.use_read_frame == False:
-            qs = qs.annotate(
-                **self.annotate_kwargs
-            ).values(
-                *self.values_args, **self.values_kwargs
-            )
+            if self.group_by:
+                qs = qs.values(
+                    *self.values_args, **self.values_kwargs
+                ).annotate(
+                    **self.annotate_kwargs
+                )
+            else:
+                qs = qs.annotate(
+                    **self.annotate_kwargs
+                ).values(
+                    *self.values_args, **self.values_kwargs
+                )
         return qs if self.limit==None else qs[:self.limit]
 
     def get_df_html(self, qs):
