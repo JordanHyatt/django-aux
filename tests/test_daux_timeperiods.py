@@ -17,7 +17,18 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
         ''' test TimePeriods period property method '''
         #I'm not sure how to test this without just re-running the exact same logic in the method itself.
         #This is import though as all the other tests seem to be using this property method
-        #Maybe contruct some periods by hand and confirm equality?
+        today = dt.datetime.now().date()
+        testday = dt.datetime(1988,8,28).date() #A great day in History
+        for date in [today, testday, dt.datetime(2099,12,31)]:
+            day = Day(date=date)
+            day.save()
+            year,_ = Year.objects.get_or_create(year_num=date.year)
+            month,_ = Month.objects.get_or_create(year_num=date.year,month_num=date.month)
+            week,_ = Week.objects.get_or_create(year_num=date.year,week_num=date.isocalendar()[1])
+            self.assertEqual(pd.Period(date, freq='D'), day.period)            
+            self.assertEqual(pd.Period(date, freq='W'), week.period)
+            self.assertEqual(pd.Period(year=date.year, freq='Y'), year.period)
+            self.assertEqual(pd.Period(year=date.year, month=date.month, freq='M'), month.period)
 
     def test_get_or_create_n_from_current(self):
         ''' test TimePeriods get_or_create_n_from_current method '''
