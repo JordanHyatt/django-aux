@@ -13,6 +13,12 @@ class CommonTimePeriodSetup(TestCase):
 class TestTimePeriodBase(CommonTimePeriodSetup):
     ''' A Test Class for the TimePeriodBase model '''
 
+    def test_period(self):
+        ''' test TimePeriods period property method '''
+        #I'm not sure how to test this without just re-running the exact same logic in the method itself.
+        #This is import though as all the other tests seem to be using this property method
+        #Maybe contruct some periods by hand and confirm equality?
+
     def test_get_or_create_n_from_current(self):
         ''' test TimePeriods get_or_create_n_from_current method '''
         now = dt.datetime.now()
@@ -64,7 +70,6 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
                 day.period.year, target.date().year
             )
 
-
     def test_get_or_create_from_date(self):
         ''' Test accuracy of the get_or_create_from_date class method '''
         testday = dt.datetime(1988,8,28).date() #A great day in History
@@ -97,6 +102,17 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
                 pd.Period.now(cls.freq_map[cls.__name__]),
                 cls.get_or_create_current_period()[0].period
             )
+
+    def test_get_rel_status(self):
+        ''' Test Timeperiods get_rel_status method '''    
+        now = dt.datetime.now()
+        past = now - dt.timedelta(days=366)
+        future = now + dt.timedelta(days=366)
+        for cls in self.classes:
+            current,_ = cls.get_or_create_current_period()
+            self.assertEqual(current.get_rel_status(), 'present')
+            self.assertEqual(current.get_rel_status(dtg=future), 'past')
+            self.assertEqual(current.get_rel_status(dtg=past), 'future')
 
 class TestMonth(TestCase):
     ''' A Test Class for the Month model '''
