@@ -18,7 +18,7 @@ class SaveFilterMixinNT:
     the users filter selections after navegating away from the lookup page"""
 
     def get(self, request, *args, **kwargs):
-        view_name = self.__class__
+        view_name = self.__class__.__name__
         qstr = request.GET.urlencode()
         full_path = request.get_full_path()
         if qstr != '':
