@@ -32,6 +32,12 @@ class TestSaveFilterMixin(TestCase):
         qstr = response.wsgi_request.session.get('PersonLookup_qstr')
     
     def test_clear_filter(self):
+        request = self.factory.get('/person-lookup', {'last_name__icontains': 'hyatt', 'first_name__icontains':'jordan'})
+        request.user = self.user
+        view = PersonLookup()
+        view.setup(request)
+        kwargs = view.get_filterset_kwargs(PersonFilter)
+        self.assertNotEqual(kwargs, {})
         request = self.factory.get('/person-lookup', {'last_name__icontains': 'hyatt', 'clear_filter': 'Clear Filter'})
         request.user = self.user
         view = PersonLookup()
