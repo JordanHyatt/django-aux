@@ -184,7 +184,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         ''' method applies user passed kwargs/args to qs methods '''
         qs = value.filter(
             *self.filter_args, **self.filter_kwargs
-        ).order_by(*self.order_by_args)
+        )
         if self.use_read_frame == False:
             if self.group_by:
                 qs = qs.values(
@@ -198,6 +198,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
                 ).values(
                     *self.values_args, **self.values_kwargs
                 )
+        qs = qs.order_by(*self.order_by_args)
         return qs if self.limit==None else qs[:self.limit]
 
     def get_df_html(self, qs):
