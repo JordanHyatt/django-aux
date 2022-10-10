@@ -32,7 +32,7 @@ class Country(models.Model):
         return f'{self.alpha3}'
 
 
-class SubDivision(models.Model):
+class Subdivision(models.Model):
     ''' Represents a country dub division using the ISO 3166-2 standard '''
     country = models.ForeignKey('Country', on_delete=models.PROTECT)
     iso_code = models.CharField(max_length=10, unique=True)

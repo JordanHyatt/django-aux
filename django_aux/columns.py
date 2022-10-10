@@ -205,6 +205,8 @@ class CollapseDataFrameColumn(CollapseColumnBase):
             df = read_frame(qs, **self.get_read_frame_kwargs())
         else:
             df = DF(qs)
+            if self.column_names:
+                df.columns = self.column_names
         return df.to_html(**self.to_html_kwargs)
 
     def render(self, value, record):
