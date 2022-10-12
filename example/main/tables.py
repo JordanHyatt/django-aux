@@ -33,7 +33,8 @@ class PersonTable(tables.Table):
         group_by = True,
         values_kwargs=dict(org_name = F('org__name')),
         annotate_kwargs=dict(salary_sum = Sum('salary')),
-        to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra
+        to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra,
+        order_by_args=['org_name'],
     )
     hist_read_frame = CollapseDataFrameColumn(
         accessor='history.all', values_args=hist_values_args, values_kwargs=hist_values_kwargs,
