@@ -56,7 +56,7 @@ class PersonTable(tables.Table):
         accessor='attr_dict', label_accessor='last_name', style='min-width:500px', sort_by='key'
     ) # dict with style, sorted by key
     longtxt = CollapseColumn(accessor='long_text', style='background-color: blue; color: yellow; min-width:50vw') # non-iterable using style
-    org = CollapseColumn(accessor='org', label_accessor='org__name') # non-iterable with dynamic label
+    org = CollapseColumn(accessor='org', orderable=True, label_accessor='org__name') # non-iterable with dynamic label
     salary_rounded = RoundNumberColumn(accessor='salary', round_to=0, money=True) # RoundNumberColumn
     delete = tables.LinkColumn('person-delete', verbose_name='', text='[Delete]', args=[A('id')])
     update = tables.LinkColumn('person-update', verbose_name='', text='[Update]', args=[A('id')])

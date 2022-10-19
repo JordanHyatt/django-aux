@@ -54,10 +54,10 @@ class CollapseColumnBase(tables.Column):
     def __init__(
         self, 
         *args, 
-        label='Show', label_accessor=None, label_extra='', style=None, nowrap=False,
+        label='Show', label_accessor=None, label_extra='', style=None, nowrap=False, orderable=False,
         **kwargs   
     ):
-        super().__init__(*args, orderable=False, **kwargs)
+        super().__init__(*args, orderable=orderable, **kwargs)
         self.label = label
         self.label_accessor = label_accessor
         self.label_extra = label_extra
