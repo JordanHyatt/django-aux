@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_aux_timeperiods',
     'django_aux_geo',
     'main.apps.MainConfig',
+    'request',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'request.middleware.RequestMiddleware',
 ]
 
 ROOT_URLCONF = 'example.urls'
