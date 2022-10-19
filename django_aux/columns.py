@@ -104,6 +104,37 @@ class CollapseColumnBase(tables.Column):
         else:
             return ''  
 
+class CollapseDictColumn(CollapseColumnBase):
+    """Custom django-tables2 column that will render a dictionary in a collapsable div."""
+      
+    def __init__(self, *args, sort_by=None, ascending=True, na_position='last', **kwargs):                
+        super().__init__(*args, **kwargs)
+        assert sort_by in [None, 'key', 'value'], 'Invalid sort_by arg. Options are None, key or value'
+        self.sort_by = sort_by
+        self.ascending = ascending
+        self.na_position = na_position
+        
+    def render(self, value, record):
+        val = self.get_dictionary_val(value=value)        
+        return self.final_render(value=value, record=record, val=val)
+
+    def get_dictionary_val(self, value):
+        if isna(value):
+            value = {}        
+        if type(value) != dict:
+            value = json.loads(value)
+        df = DF(Series(value), columns=['value'])
+        df = df.reset_index().rename(columns={'index':'key'})
+        if self.sort_by:
+            df = df.astype(
+                {'value':'string','key':'string'}
+            ).sort_values(self.sort_by, ascending=self.ascending, na_position=self.na_position)
+        df_html = df.to_html(
+            classes = ['table-bordered', 'table-striped', 'table-sm'],
+            index=False, justify='left', header=False
+        )
+        return f'<div style={self.get_style()}>{df_html}</div>'
+
 class CollapseDataFrameColumn(CollapseColumnBase):
     """Custom django-tables2 column that will render a queryset as a pandas.DataFrame using the 
         pandas.DataFrame.to_html method in a collapsable div.
@@ -218,8 +249,6 @@ class CollapseDataFrameColumn(CollapseColumnBase):
             val= self.get_df_html(qs)
         return self.final_render(value=value, record=record, val=val)
 
-
-
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
 
@@ -306,6 +335,7 @@ def get_background(value, record, table, bound_column):
         w = 100*val/max
     style_str = f'background:linear-gradient(90deg, {bound_column.column.color} {w}%, transparent {w}%)'
     return style_str
+
 class BarChartColumn(tables.Column):
     def __init__(
         self, *args,
@@ -343,7 +373,6 @@ class BarChartColumn(tables.Column):
             value = 0
         return value
 
-
 class LastChangeDateColumn(tables.Column):
     ''' This Column can be used with tables that have a model defined and 
     are using django simple-history to track changes'''
@@ -367,7 +396,6 @@ class LastChangeUserColumn(tables.Column):
             if user == None:
                 return 'Automated'
             return user.employee
-
 
 class LastChangeTypeColumn(tables.Column):
     ''' This Column can be used with tables that have a model defined and 
