@@ -115,12 +115,29 @@ class CollapseDictColumn(CollapseColumnBase):
         **kwargs: passed to CollapseColumnBase
     """    
       
-    def __init__(self, *args, sort_by=None, ascending=True, na_position='last', **kwargs):                
+    def __init__(
+        self, *args, 
+        sort_by = None, 
+        ascending = True, 
+        na_position = 'last', 
+        to_html_kwargs = None, 
+        to_html_kwargs_extra = None, 
+        **kwargs
+    ):                
         super().__init__(*args, **kwargs)
         assert sort_by in [None, 'key', 'value'], 'Invalid sort_by arg. Options are None, key or value'
         self.sort_by = sort_by
         self.ascending = ascending
         self.na_position = na_position
+        if to_html_kwargs==None:
+            self.to_html_kwargs = dict(
+                classes = ['table-bordered', 'table-striped', 'table-sm'],
+                index=False, justify='left'
+            )                    
+        else: 
+            self.to_html_kwargs = to_html_kwargs
+        self.to_html_kwargs_extra = {} if to_html_kwargs_extra==None else to_html_kwargs_extra
+        self.to_html_kwargs.update(self.to_html_kwargs_extra)
         
     def render(self, value, record):
         val = self.get_dictionary_val(value=value)        
@@ -137,10 +154,7 @@ class CollapseDictColumn(CollapseColumnBase):
             df = df.astype(
                 {'value':'string','key':'string'}
             ).sort_values(self.sort_by, ascending=self.ascending, na_position=self.na_position)
-        df_html = df.to_html(
-            classes = ['table-bordered', 'table-striped', 'table-sm'],
-            index=False, justify='left', header=False
-        )
+        df_html = df.to_html(**self.to_html_kwargs)
         return f'<div style={self.get_style()}>{df_html}</div>'
 
 class CollapseDataFrameColumn(CollapseColumnBase):
