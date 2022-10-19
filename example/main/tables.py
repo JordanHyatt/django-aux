@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django.db.models import F, Q, Sum
 from django_tables2 import A
 from main.models import *
-from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn
+from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn
 
 
 hist_values_args = [
@@ -49,10 +49,14 @@ class PersonTable(tables.Table):
     adjectives = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives') # regular iterable
     adjectives_links = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
     adjectives_dyn_labels = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
-    pdict = CollapseColumn(accessor='attr_dict', dictionary=True, label_accessor='last_name') # dict 
-    pdict_styled = CollapseColumn(accessor='attr_dict', dictionary=True, label_accessor='last_name', style='min-width:500px') # dict with style 
+    pdict = CollapseDictColumn(
+        accessor='attr_dict', label_accessor='last_name', sort_by='value', ascending=False
+    ) # dict sorted by desc value
+    pdict_styled = CollapseDictColumn(
+        accessor='attr_dict', label_accessor='last_name', style='min-width:500px', sort_by='key'
+    ) # dict with style, sorted by key
     longtxt = CollapseColumn(accessor='long_text', style='background-color: blue; color: yellow; min-width:50vw') # non-iterable using style
-    org = CollapseColumn(accessor='org', label_accessor='org__name') # non-iterable with dynamic label
+    org = CollapseColumn(accessor='org', orderable=True, label_accessor='org__name') # non-iterable with dynamic label
     salary_rounded = RoundNumberColumn(accessor='salary', round_to=0, money=True) # RoundNumberColumn
     delete = tables.LinkColumn('person-delete', verbose_name='', text='[Delete]', args=[A('id')])
     update = tables.LinkColumn('person-update', verbose_name='', text='[Update]', args=[A('id')])
@@ -61,7 +65,6 @@ class PersonTable(tables.Table):
         model = Person
         exclude = ['uuid']
         sequence = []
-
 
 class SaleTable(tables.Table):
     amount = RoundNumberColumn(round_to=2, money=True)
