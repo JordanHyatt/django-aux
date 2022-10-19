@@ -57,7 +57,7 @@ class CollapseColumnBase(tables.Column):
         label='Show', label_accessor=None, label_extra='', style=None, nowrap=False,
         **kwargs   
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, orderable=False, **kwargs)
         self.label = label
         self.label_accessor = label_accessor
         self.label_extra = label_extra
@@ -105,7 +105,15 @@ class CollapseColumnBase(tables.Column):
             return ''  
 
 class CollapseDictColumn(CollapseColumnBase):
-    """Custom django-tables2 column that will render a dictionary in a collapsable div."""
+    """Custom django-tables2 column that will render a dictionary in a collapsable div.
+
+    Args:
+        *args: passed to CollapseColumnBase
+        sort_by: None, 'key' or 'value' determines what to sort the dictionary by, defaults to None. keys and values will be pandas astype('string')
+        ascending: bool that sorts keys/values ascending (True) or descending (False). Default = True
+        na_position: 'first' or 'last' places records with null values up front or at end respectively
+        **kwargs: passed to CollapseColumnBase
+    """    
       
     def __init__(self, *args, sort_by=None, ascending=True, na_position='last', **kwargs):                
         super().__init__(*args, **kwargs)
