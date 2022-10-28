@@ -44,12 +44,12 @@ class CollapseColumnBase(tables.Column):
     """ Base class for CollapseColumn, extends django-tables2 Column class
     Args:
         *args: arguments to be passed to djang-tables2 derived Column __init__ method
-        **kwargs: arguments to be passed to djang-tables2 derived Column __init__ method
-        label (:obj:`str`, optional): The string to be displayed on the collapse target. Defaults to "show"
-        label_accessor (:obj:`str`, optional): Passed to django-tables2 Accessor object along with the cell value. 
+        label (str, optional): The string to be displayed on the collapse target. Defaults to "show"
+        label_accessor (str, optional): Passed to django-tables2 Accessor object along with the cell value. 
             Result used as collapse target label
-        label_extra (:obj:`str`, optional): Extra text that will be appended to the collapse target label
-        style (:obj:`str`, optional): css expression that will be passed to the collapasable divs style parameter
+        label_extra (str, optional): Extra text that will be appended to the collapse target label
+        style (str, optional): css expression that will be passed to the collapasable divs style parameter
+        **kwargs: arguments to be passed to djang-tables2 derived Column __init__ method
     """    
     def __init__(
         self, 
@@ -75,6 +75,16 @@ class CollapseColumnBase(tables.Column):
         return f'"{r}"'
 
     def get_label(self, value=None, record=None, val=None):
+        """ A method that returns the label to be used for the collapasble div
+
+        Args:
+            value (str, optional): The value of the cell in the table (standard arg from django-tables2). Defaults to None.
+            record (_type_, optional): The record representing the row of the table (standard arg from django-tables2). Defaults to None.
+            val (_type_, optional): the html val to be rendered in the collapasable div. Defaults to None.
+
+        Returns:
+            str: The collapsable div label
+        """        
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
@@ -87,6 +97,17 @@ class CollapseColumnBase(tables.Column):
         return str(rval) + self.label_extra
 
     def final_render(self, value, record, val):
+        """ The final html to be rendered in the cell of the table
+
+        Args:
+            value (str, optional): The value of the cell in the table (standard arg from django-tables2). Defaults to None.
+            record (_type_, optional): The record representing the row of the table (standard arg from django-tables2). Defaults to None.
+            val (_type_, optional): the html val to be rendered in the collapasable div. Defaults to None.
+
+        Returns:
+            str: the html to be rendered in the cell of the table
+        """        
+
         randnum = random.randint(1, 1_000_000_000)
         label = self.get_label(value=value, record=record, val=val)
         if label != '':
@@ -108,11 +129,20 @@ class CollapseDictColumn(CollapseColumnBase):
     """Custom django-tables2 column that will render a dictionary in a collapsable div.
 
     Args:
-        *args: passed to CollapseColumnBase
-        sort_by: None, 'key' or 'value' determines what to sort the dictionary by, defaults to None. keys and values will be pandas astype('string')
-        ascending: bool that sorts keys/values ascending (True) or descending (False). Default = True
-        na_position: 'first' or 'last' places records with null values up front or at end respectively
-        **kwargs: passed to CollapseColumnBase
+        *args (iterable, optional): arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+        *kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+        label (str, optional): The string to be displayed on the collapse target. Defaults to "show"
+        label_accessor (str, optional): Passed to django-tables2 Accessor object along with the cell value. 
+            Result used as collapse target label
+        label_extra (str, optional): Extra text that will be appended to the collapse target label
+        style (str, optional): css expression that will be passed to the collapasable divs style parameter
+        sort_by (str, optional): None, 'key' or 'value' determines what to sort the dictionary by. 
+            keys and values will be pandas astype('string'). defaults to None. 
+        ascending (bool, optional): bool that sorts keys/values ascending (True) or descending (False). Default = True
+        na_position (str, optional): 'first' or 'last' places records with null values up front or at end respectively
+        to_html_kwargs (dict, optional): kwargs to be passed to pd.DataFrame.to_html method. 
+            defaults to dict(classes = ['table-bordered', 'table-striped', 'table-sm'], index=False, justify='left')   
+        to_html_kwargs_extra (dict, optional): kwargs to be added to the to_html_kwargs (typically used for "adding" to defaults). Defaults to {}      
     """    
       
     def __init__(
@@ -140,10 +170,10 @@ class CollapseDictColumn(CollapseColumnBase):
         self.to_html_kwargs.update(self.to_html_kwargs_extra)
         
     def render(self, value, record):
-        val = self.get_dictionary_val(value=value)        
+        val = self.get_dictionary_html(value=value)        
         return self.final_render(value=value, record=record, val=val)
 
-    def get_dictionary_val(self, value):
+    def get_dictionary_html(self, value):
         if isna(value):
             value = {}        
         if type(value) != dict:
