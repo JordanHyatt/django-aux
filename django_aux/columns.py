@@ -301,13 +301,18 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         qs = qs.order_by(*self.order_by_args)
         return qs if self.limit==None else qs[:self.limit]
 
-    def get_df_html(self, qs):
+    def get_df_final(self, qs):
+        ''' Final steps to pd.DF before render or export '''
         if self.use_read_frame:
             df = read_frame(qs, **self.get_read_frame_kwargs())
         else:
             df = DF(qs)
             if self.column_names:
                 df.columns = self.column_names
+        return df
+
+    def get_df_html(self, qs):
+        df = self.get_df_final(qs)
         return df.to_html(**self.to_html_kwargs)
 
     def render(self, value, record):
@@ -317,6 +322,13 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         else:
             val= self.get_df_html(qs)
         return self.final_render(value=value, record=record, val=val)
+
+    def value(self, value, record):
+        ''' Return the value used during table export '''
+        qs = self.get_queryset(value)
+        if qs.count() == 0:
+            return None
+        return self.get_df_final(qs).values.tolist()
 
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
