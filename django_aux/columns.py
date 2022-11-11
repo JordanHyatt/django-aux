@@ -328,7 +328,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         qs = self.get_queryset(value)
         if qs.count() == 0:
             return None
-        return self.get_df_final(qs).values.tolist()
+        return self.get_df_final(qs).to_dict()
 
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
