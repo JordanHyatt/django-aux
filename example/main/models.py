@@ -150,6 +150,11 @@ class Sale(models.Model):
     #     month, _ = dat.models.Month.get_or_create(year_num=self.dtg.year, month_num=self.dtg.month)
     #     self.salemonth, _ = SaleMonth.objects.get_or_create(month=month)
 
+    @property
+    def percent_of_million(self):
+        ''' Return a float that is what percentage of 1 million a sale is '''
+        return self.amount / 1_000_000 * 100
+
     def __str__(self) -> str:
         return f'{self.buyer} | {self.dtg} | {self.category} | {self.amount}'
 

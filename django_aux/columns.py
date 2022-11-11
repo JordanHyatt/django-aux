@@ -21,13 +21,23 @@ class CheckFkColumn(tables.Column):
         return f'{value}{check}'
 
 class RoundNumberColumn(tables.Column):
-    ''' A column that will round a number and add commas for display '''
+    """ A column that will round a number and add commas for display
 
-    def __init__(self, *args, money=False, round_to=2, prefix='', **kwargs):
+    Args:
+        *args: arguments to be passed to django-tables2 Column class __init__ method
+        money: (bool default=False) Will append a dollar sign $ to front of value if true
+        round_to: (int default=2) The number of decimals to round to
+        prefix: (str, optional) This string is concatenated to the front of value
+        suffix: (str, optional) This string is concatenated to the end of value
+        **kwargs: arguments to be passed to django-tables2 Column class __init__ method
+    """    
+
+    def __init__(self, *args, money=False, round_to=2, prefix='', suffix='', **kwargs):
         super().__init__(*args, **kwargs)
         self.money = money
         self.round_to = round_to
         self.prefix = prefix
+        self.suffix = suffix
     
     def render(self, value, record):
         val = round(value, self.round_to)
@@ -37,7 +47,7 @@ class RoundNumberColumn(tables.Column):
             rstr = f'{val:,.{self.round_to}f}'
         if self.money: 
             rstr = '$' + rstr
-        return self.prefix + rstr
+        return self.prefix + rstr + self.suffix
 
       
 class CollapseColumnBase(tables.Column):

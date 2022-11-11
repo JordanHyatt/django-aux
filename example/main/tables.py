@@ -76,4 +76,6 @@ class SaleTable(tables.Table):
         model = Sale
         exclude = []
 
+    salary_percent = RoundNumberColumn(accessor='percent_of_million', suffix='%')
+
 
