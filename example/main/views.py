@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView
 from django_filters.views import FilterView
+from django_tables2.export.views import ExportMixin
 from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, PlotlyMixin
 from main.tables import *
 from main.filters import *
@@ -33,10 +34,11 @@ class PersonBase(MainBase):
     table_class = PersonTable
     filterset_class = PersonFilter
 
-class PersonLookup(PersonBase, SaveFilterMixin, FilterView):
+class PersonLookup(PersonBase, ExportMixin, SaveFilterMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Person Lookup'
+        context['export_csv'] = True
         context.update(dict(url1='person-create', url1_text='[Create New Person]'))
         return context
 
@@ -78,10 +80,11 @@ class SaleBase(MainBase):
     table_class = SaleTable
     filterset_class = SaleFilter
 
-class SaleLookup(SaleBase, SaveFilterMixin, FilterView):
+class SaleLookup(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Lookup'
+        context['export_csv'] = True
         return context
 
 
