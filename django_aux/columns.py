@@ -29,6 +29,7 @@ class RoundNumberColumn(tables.Column):
         round_to: (int default=2) The number of decimals to round to
         prefix: (str, optional) This string is concatenated to the front of value
         suffix: (str, optional) This string is concatenated to the end of value
+        orderable: (bool default=True) Can django-table sort/order this col. Will be set to false if money, suffix or prefix provided
         **kwargs: arguments to be passed to django-tables2 Column class __init__ method
     """    
 
@@ -49,6 +50,9 @@ class RoundNumberColumn(tables.Column):
             rstr = '$' + rstr
         return self.prefix + rstr + self.suffix
 
+    def value(self, value, record):
+        ''' Overrides default value method (that would just call render on table export) '''
+        return value
       
 class CollapseColumnBase(tables.Column):
     """ Base class for CollapseColumn, extends django-tables2 Column class
@@ -182,6 +186,9 @@ class CollapseDictColumn(CollapseColumnBase):
     def render(self, value, record):
         val = self.get_dictionary_html(value=value)        
         return self.final_render(value=value, record=record, val=val)
+
+    def value(self, value, record):
+        return value
 
     def get_dictionary_html(self, value):
         if isna(value):

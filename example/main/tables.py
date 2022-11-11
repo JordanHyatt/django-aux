@@ -72,10 +72,11 @@ class PersonTable(tables.Table):
 
 class SaleTable(tables.Table):
     amount = RoundNumberColumn(round_to=2, money=True)
+    salary_percent = RoundNumberColumn(accessor='percent_of_million', suffix='%', orderable=False)
     class Meta:
         model = Sale
         exclude = []
 
-    salary_percent = RoundNumberColumn(accessor='percent_of_million', suffix='%')
+    
 
 
