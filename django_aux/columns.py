@@ -330,6 +330,57 @@ class CollapseDataFrameColumn(CollapseColumnBase):
             return None
         return self.get_df_final(qs).to_dict()
 
+class CollapseIterableColumn(CollapseColumnBase):
+    ''' Custom django-tables2 column that will render an iterable in a collapsable div. '''
+
+#label='Show', label_accessor=None, label_extra='', style=None, nowrap=False, orderable=False,
+
+    def __init__(self, 
+        *args, 
+        order_by = None,
+        hyperlink = False,
+        fkwargs = None,
+        href_attr = None, 
+        str_attr = None, 
+        property_attr = None, 
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.hyperlink = hyperlink
+        self.href_attr = href_attr
+        self.property_attr = property_attr
+        self.str_attr = str_attr
+        self.order_by = order_by
+        self.fkwargs = fkwargs
+
+    def get_href(self, obj):
+        ''' Method derives the href value to be used in hyperlinking list items '''
+        if self.href_attr == None:
+            return obj.get_absolute_url()
+        else:
+            return getattr(obj, self.href_attr)
+
+    def get_final_value(self, value):
+        if self.order_by:
+            value = value.order_by(self.order_by)
+        if self.fkwargs:
+            value = value.filter(**self.fkwargs)
+        val = ''
+        style = self.get_style()
+        for obj in value:
+            obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
+            if self.hyperlink:
+                href = self.get_href(obj)
+                obj_val = f'<a href={href}>{obj_val}</a>'
+            val = val + f'<li style={style}>{obj_val}</li>'
+        return val
+
+    def render(self, value, record):
+        if self.property_attr:
+            value = getattr(record, self.property_attr)
+        val = self.get_final_value(value)
+        return self.final_render(value=value, record=record, val=val)
+
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
 

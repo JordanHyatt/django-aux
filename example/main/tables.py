@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django.db.models import F, Q, Sum
 from django_tables2 import A
 from main.models import *
-from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn
+from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, CollapseIterableColumn
 
 
 hist_values_args = [
@@ -46,9 +46,9 @@ class PersonTable(tables.Table):
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra,
     )
 
-    adjectives = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives') # regular iterable
-    adjectives_links = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
-    adjectives_dyn_labels = CollapseColumn(accessor='adjectives.all', iterable=True, verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
+    adjectives = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives') # regular iterable
+    adjectives_links = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
+    adjectives_dyn_labels = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
     pdict = CollapseDictColumn(
         accessor='attr_dict', label_accessor='last_name', sort_by='value', ascending=False
     ) # dict sorted by desc value
