@@ -331,9 +331,18 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         return self.get_df_final(qs).to_dict()
 
 class CollapseIterableColumn(CollapseColumnBase):
-    ''' Custom django-tables2 column that will render an iterable in a collapsable div. '''
+    """ Custom django-tables2 column that will render an iterable in a collapsable div.
 
-#label='Show', label_accessor=None, label_extra='', style=None, nowrap=False, orderable=False,
+    Args:
+        *args (iterable, optional): arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+    order_by: (*fields, default None) Expression fed to sort_by django method. Should be comma separated fields or other order_by expressions
+    hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
+    fkwargs: (**kwargs, default None) Lookup/field parameters used in a Django Quereyset filter
+    href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
+    str_attr: (str, default None) Name of attribute that will be used for display in lieu of value's __str__()
+    property_attr: (str, default None) Name of attribute that can be used to replace the default value of the record
+    **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+    """    
 
     def __init__(self, 
         *args, 
