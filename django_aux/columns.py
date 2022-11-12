@@ -360,11 +360,15 @@ class CollapseIterableColumn(CollapseColumnBase):
         else:
             return getattr(obj, self.href_attr)
 
-    def get_final_value(self, value):
+    def get_prepped_value(self, value):
         if self.order_by:
             value = value.order_by(self.order_by)
         if self.fkwargs:
             value = value.filter(**self.fkwargs)
+        return value
+
+    def get_final_value(self, value):
+        value = self.get_prepped_value(value)
         val = ''
         style = self.get_style()
         for obj in value:
@@ -380,6 +384,18 @@ class CollapseIterableColumn(CollapseColumnBase):
             value = getattr(record, self.property_attr)
         val = self.get_final_value(value)
         return self.final_render(value=value, record=record, val=val)
+
+    def value(self, value, record):
+        if self.property_attr:
+            value = getattr(record, self.property_attr)
+        value = self.get_prepped_value(value)
+        if self.str_attr:
+            alt_values = []
+            for obj in value:
+                obj_val = getattr(obj, self.str_attr)
+                alt_values.append(obj_val)
+            return alt_values
+        return list(value)
 
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
