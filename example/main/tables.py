@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django.db.models import F, Q, Sum
 from django_tables2 import A
 from main.models import *
-from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, CollapseIterableColumn
+from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, CollapseIterableColumn, CollapseNoniterableColumn
 
 
 hist_values_args = [
@@ -45,7 +45,8 @@ class PersonTable(tables.Table):
         column_names=['history_id', 'history_user', 'adjective'],
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra,
     )
-
+    salary = CollapseNoniterableColumn(accessor='salary', orderable=True)
+    middle_name = CollapseNoniterableColumn(accessor='middle_name', hyperlink=True, href_attr='foo_url', orderable=True)
     adjectives = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives') # regular iterable
     adjectives_links = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
     adjectives_dyn_labels = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels

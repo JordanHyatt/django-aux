@@ -63,6 +63,10 @@ class Person(models.Model):
         import lipsum
         return lipsum.generate_paragraphs(3)
 
+    @property
+    def foo_url(self):
+        return 'https://pypi.org/project/django-aux/'
+
     @classmethod
     def generate_random_people(cls, wipe_table=False, n=10):
         ''' classmethod to generate random people by calling generate_random_person module '''

@@ -340,7 +340,6 @@ class CollapseIterableColumn(CollapseColumnBase):
     fkwargs: (**kwargs, default None) Lookup/field parameters used in a Django Quereyset filter
     href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
     str_attr: (str, default None) Name of attribute that will be used for display in lieu of value's __str__()
-    property_attr: (str, default None) Name of attribute that can be used to replace the default value of the record
     **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
     """    
 
@@ -399,6 +398,43 @@ class CollapseIterableColumn(CollapseColumnBase):
                 alt_values.append(obj_val)
             return alt_values
         return list(val)
+
+class CollapseNoniterableColumn(CollapseColumnBase):
+    """ Custom django-tables2 column that will render an an object in a collapsable div.
+
+    Args:
+        *args (iterable, optional): arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+    hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
+    href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
+    **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+    """   
+
+    def __init__(self, *args, hyperlink=False, href_attr=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hyperlink = hyperlink
+        self.href_attr = href_attr
+
+    def get_href(self, obj):
+        ''' Method derives the href value to be used in hyperlinking list items '''
+        if self.href_attr == None:
+            return obj.get_absolute_url()
+        else:
+            return getattr(obj, self.href_attr)
+
+    def get_prepped_value(self, value, record):
+        if self.hyperlink:
+            href = self.get_href(record)
+            val = f'<a href={href}>{value}</a>'
+        else:
+            val = value
+        return f'<div style={self.get_style()}>{val}</div>'
+
+    def render(self, value, record):
+        val = self.get_prepped_value(value=value, record=record)
+        return self.final_render(value=value, record=record, val=val)   
+
+    def value(self, value, record):
+        return value
 
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
