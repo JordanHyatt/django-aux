@@ -53,7 +53,7 @@ class Subdivision(models.Model):
         if df.empty: return
         df.columns = ['code', 'name', 'category']
         for tup in df.itertuples():
-            SubDivision.objects.get_or_create(
+            cls.objects.get_or_create(
                 iso_code = tup.code,
                 defaults = dict(
                     name = tup.name, category = tup.category, country=country

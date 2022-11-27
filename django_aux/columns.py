@@ -335,12 +335,12 @@ class CollapseIterableColumn(CollapseColumnBase):
 
     Args:
         *args (iterable, optional): arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
-    order_by: (*fields, default None) Expression fed to sort_by django method. Should be comma separated fields or other order_by expressions
-    hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
-    fkwargs: (**kwargs, default None) Lookup/field parameters used in a Django Quereyset filter
-    href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
-    str_attr: (str, default None) Name of attribute that will be used for display in lieu of value's __str__()
-    **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+        order_by: (*fields, default None) Expression fed to sort_by django method. Should be comma separated fields or other order_by expressions
+        hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
+        fkwargs: (**kwargs, default None) Lookup/field parameters used in a Django Quereyset filter
+        href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
+        str_attr: (str, default None) Name of attribute that will be used for display in lieu of value's __str__()
+        **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
     """    
 
     def __init__(self, 
@@ -404,9 +404,9 @@ class CollapseNoniterableColumn(CollapseColumnBase):
 
     Args:
         *args (iterable, optional): arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
-    hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
-    href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
-    **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
+        hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
+        href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
+        **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
     """   
 
     def __init__(self, *args, hyperlink=False, href_attr=None, **kwargs):

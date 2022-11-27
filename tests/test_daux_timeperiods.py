@@ -2,6 +2,7 @@ from django.test import TestCase
 from django_aux_timeperiods.models import *
 import pandas as pd
 import datetime as dt
+import itertools
 
 #------------TIME PERIOD TESTS------------
 class CommonTimePeriodSetup(TestCase):
@@ -33,53 +34,26 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
     def test_get_or_create_n_from_current(self):
         ''' test TimePeriods get_or_create_n_from_current method '''
         now = dt.datetime.now()
-        for i in range(-13,15):
-            #Test Year class
-            year,_ = Year.get_or_create_n_from_current(n=i)
-            target = now.year + i
-            self.assertEqual(year.period.year,target)
-            #Test Month class
-            month,_ = Month.get_or_create_n_from_current(n=i)
-            target_month = (now.month + i%12)
-            if target_month > 12: 
-                target_month = target_month-12
-            self.assertEqual(
-                month.period.month, target_month
-            )
-            ##The year may have rolled over too during shifting months
-            target_year = now.year
-            month_delta = now.month + i
-            if month_delta > 12: target_year = target_year + 1
-            if month_delta < 1: target_year = target_year - 1
-            self.assertEqual(
-                month.period.year, target_year
-            )
-            #Test Week class
-            week,_ = Week.get_or_create_n_from_current(n=i)
-            target = now + dt.timedelta(weeks=i)
-            self.assertEqual(
-                week.period.week, target.date().isocalendar()[1]
-            )
-            ##The year may have rolled over too during shifting weeks
-            target_year = now.year
-            week_delta = now.isocalendar()[1] + i
-            if week_delta >= 52: target_year = target_year + 1 #IS this only a .= b/c of this specific year's wk 52?!
-            if week_delta < 1: target_year = target_year - 1
-            self.assertEqual(
-                week.period.year, target_year
-            )
-            #Test Day class
-            day,_ = Day.get_or_create_n_from_current(n=i)
-            target = now + dt.timedelta(i)
-            self.assertEqual(
-                day.period.day, target.date().day
-            )
-            self.assertEqual(
-                day.period.month, target.date().month
-            )
-            self.assertEqual(
-                day.period.year, target.date().year
-            )
+        def get_target_period(n, freq):
+            now = dt.datetime.now()
+            if n == 0:
+                return pd.Period(now, freq=freq)
+            if n < 0:
+                pr = pd.period_range(end = now, periods=abs(n)+1, freq=freq)
+                return pr[0]
+            else:
+                pr = pd.period_range(start = now, periods=abs(n)+1, freq=freq)
+                return pr[-1]     
+
+        ns = list(range(-13,15))
+        models = [Year, Month, Week, Day]
+        for n, model in itertools.product(ns, models):
+            print(n, model)
+            obj,_ = model.get_or_create_n_from_current(n=n)
+            freq = model.freq_map.get(model.__name__)
+            target = get_target_period(n, freq)
+            self.assertEqual(obj.period, target)
+
 
     def test_get_or_create_from_date(self):
         ''' Test accuracy of the get_or_create_from_date class method '''
