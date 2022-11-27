@@ -9,7 +9,7 @@ class CommonTimePeriodSetup(TestCase):
     ''' Basic setup that runs prior to each Test '''
     
     def setUp(self):
-        self.classes = [Year, Month, Week, Day]
+        self.models = [Year, Month, Week, Day]
 
 class TestTimePeriodBase(CommonTimePeriodSetup):
     ''' A Test Class for the TimePeriodBase model '''
@@ -48,7 +48,6 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
         ns = list(range(-13,15))
         models = [Year, Month, Week, Day]
         for n, model in itertools.product(ns, models):
-            print(n, model)
             obj,_ = model.get_or_create_n_from_current(n=n)
             freq = model.freq_map.get(model.__name__)
             target = get_target_period(n, freq)
@@ -82,7 +81,7 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
 
     def test_get_or_create_current_period(self):
         ''' Test accuracy of the get_or_create_current_period class method '''
-        for cls in self.classes:            
+        for cls in self.models:            
             self.assertEqual(
                 pd.Period.now(cls.freq_map[cls.__name__]),
                 cls.get_or_create_current_period()[0].period
@@ -93,7 +92,7 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
         now = dt.datetime.now()
         past = now - dt.timedelta(days=366)
         future = now + dt.timedelta(days=366)
-        for cls in self.classes:
+        for cls in self.models:
             current,_ = cls.get_or_create_current_period()
             self.assertEqual(current.get_rel_status(), 'present')
             self.assertEqual(current.get_rel_status(dtg=future), 'past')
