@@ -1,11 +1,43 @@
 from django.test import TestCase, RequestFactory, Client
 from django_aux.models import *
+from django_aux.utils import PasswordUtils
 from .models import Person
 from .views import PersonLookup
 from .filters import PersonFilter
 from django.contrib.auth.models import User
 
 #------------Django-Aux TESTS------------
+
+class TestPasswordUtils(TestCase):
+    ''' Test Case for PasswordUtils '''
+
+    def test_check_password(self):
+        raise_tests = [
+            dict(password='<10', min_length=10, must_have_symbol=False, must_have_caps=False, must_have_digit=False),
+            dict(password='password', min_length=1, must_have_symbol=True, must_have_caps=False, must_have_digit=False),
+            dict(password='password', min_length=1, must_have_symbol=False, must_have_caps=True, must_have_digit=False),
+            dict(password='password', min_length=1, must_have_symbol=False, must_have_caps=False, must_have_digit=True),
+        ]
+        for test in raise_tests:
+            self.assertRaises(AssertionError, PasswordUtils().check_password, test)
+
+        ok_tests = [
+            dict(password='password', min_length=1, must_have_symbol=False, must_have_caps=False, must_have_digit=False),
+            dict(password='password!', min_length=1, must_have_symbol=True, must_have_caps=False, must_have_digit=False),
+            dict(password='passworD', min_length=1, must_have_symbol=False, must_have_caps=True, must_have_digit=False),
+            dict(password='password1', min_length=1, must_have_symbol=False, must_have_caps=False, must_have_digit=True),
+        ]
+        for test in ok_tests:
+            # Just make sure there are no raises
+            PasswordUtils().check_password(**test)
+
+    def test_generate_password(self):
+        for i in range(5,50, 5):
+            pw = PasswordUtils().generate_password(N=i)
+            # Ensure Length is correct
+            self.assertEqual(len(pw), i)
+            # Ensure no amgigous characters
+            self.assertEqual(len(set(pw).intersection(PasswordUtils.AMBIGUOUS_CHARS)), 0)
 
 
 class TestSaveFilterMixin(TestCase):

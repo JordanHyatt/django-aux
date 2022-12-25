@@ -7,6 +7,27 @@ import json
 from django.utils.html import mark_safe
 from django_pandas.io import read_frame
 
+
+class FixedTextColumn(tables.Column):
+    ''' Mimics behavior of django_tables2.tables.Column but allows for a fixed text to be rendered '''
+    def __init__(self, *args, text='', empty_values=None, **kwargs):
+        if empty_values == None:
+            empty_values = []
+        super().__init__(*args, empty_values=empty_values, **kwargs)
+        self.text = text
+
+    def text_value(self, record, value):
+        if self.text is None:
+            return value
+        return self.text(record) if callable(self.text) else self.text
+
+    def value(self, record, value):
+        return self.text_value(record, value)
+
+    def render(self, record, value):
+        return self.text_value(record, value)
+
+
 class CheckFkColumn(tables.Column):
     ''' A column checks and displays the existence of a FK relationship '''
     def __init__(self, *args, fk_attr=None, present_symbol='✔', absent_symbol='X', **kwargs):

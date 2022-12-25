@@ -2,8 +2,10 @@ import django_tables2 as tables
 from django.db.models import F, Q, Sum
 from django_tables2 import A
 from main.models import *
-from django_aux.columns import CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, CollapseIterableColumn, CollapseNoniterableColumn
-
+from django_aux.columns import (
+    CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, 
+    CollapseIterableColumn, CollapseNoniterableColumn, FixedTextColumn
+)
 
 hist_values_args = [
     'first_name', 'last_name', 'salary',
@@ -66,6 +68,7 @@ class PersonTable(tables.Table):
     delete = tables.LinkColumn('person-delete', verbose_name='', text='[Delete]', args=[A('id')])
     update = tables.LinkColumn('person-update', verbose_name='', text='[Update]', args=[A('id')])
     update_inline = tables.LinkColumn('person-update-inline', verbose_name='', text='[Update Inline]', args=[A('id')])
+    fixed_text = FixedTextColumn(text='Im a fixed label', linkify=lambda: '#', verbose_name='Fixed Text Header')
     class Meta:
         model = Person
         exclude = ['uuid']
