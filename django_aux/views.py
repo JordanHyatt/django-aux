@@ -170,6 +170,10 @@ class RedirectPrevMixin:
     ''' This mixin will redirect user to the page they came from if 
     form successful OR if "cancel" is in post data  (Uses session data)'''
     redirect_exceptions = [] # list of paths or partial paths that should not be redirected to
+    # redirect_exceptions = [
+    #     {'path':'emp-delete', 'reverse':'emp-lookup'}
+    # ]
+
 
     @property
     def form_takes_request_arg(self):
@@ -193,7 +197,6 @@ class RedirectPrevMixin:
 
     def get_next_is_exception(self, next):
         for exc in self.redirect_exceptions:
-            print(exc)
             if exc in next:
                 return True
         return False
