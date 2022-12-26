@@ -169,6 +169,7 @@ class SaveFormMixin:
 class RedirectPrevMixin:
     ''' This mixin will redirect user to the page they came from if 
     form successful OR if "cancel" is in post data  (Uses session data)'''
+    redirect_exceptions = [] # list of paths or partial paths that should not be redirected to
 
     @property
     def form_takes_request_arg(self):
@@ -189,14 +190,24 @@ class RedirectPrevMixin:
         kwargs['request'] = self.request
         return kwargs
 
+
+    def get_next_is_exception(self, next):
+        for exc in self.redirect_exceptions:
+            print(exc)
+            if exc in next:
+                return True
+        return False
+
     def get(self, request, *args, **kwargs):
         ''' Extends the get method to store where the user was prior to this page '''
         next = self.request.META.get('HTTP_REFERER')
         if next == None: 
             next = ''
-        mask = request.path in next # redirected from the same page, dont overrwrite next
-        if not mask:
-            request.session['next'] = self.request.META.get('HTTP_REFERER')
+        m1 = request.path in next # redirected from the same page, dont overrwrite next
+        m2 = self.get_next_is_exception(next)
+        if m1 or m2:
+            return super().get(request, *args, **kwargs)
+        request.session['next'] = self.request.META.get('HTTP_REFERER')
         return super().get(request, *args, **kwargs)
 
     def get_success_url(self):

@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
@@ -55,9 +56,16 @@ class PersonDelete(PersonBase, RedirectPrevMixin, DeleteView):
     ''' Delete view for Person object '''
     template_name = 'django_aux/delete.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        href = reverse('person-update', kwargs=dict(pk=self.object.pk))
+        emsg = f'* Usually it is better to de-activate the Person <a href={href}> here </a> *'
+        context['extra_message'] = mark_safe(emsg)
+        return context
 
 class PersonUpdate(PersonBase, RedirectPrevMixin, UpdateView):
     ''' Update view for Person instance '''
+    redirect_exceptions = ['delete']
     form_class = PersonForm
 
 
