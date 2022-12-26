@@ -14,4 +14,5 @@ urlpatterns = [
 
     path("sale-lookup", SaleLookup.as_view(), name="sale-lookup"),
     path("sale-plotly", SalePlotly.as_view(), name="sale-plotly"),
+    path("sale-delete/<int:pk>", SaleDelete.as_view(), name="sale-delete"),
 ]

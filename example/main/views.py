@@ -87,7 +87,6 @@ class SaleLookup(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
         context['export_csv'] = True
         return context
 
-
 class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
     filterset_class = SalePlotlyFilter
     template_name = 'django_aux/standard-plotly.html'
@@ -114,4 +113,13 @@ class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Data Exploration'
         print(context.get('some_var'))
+        return context
+
+
+class SaleDelete(SaleBase, RedirectPrevMixin, DeleteView):
+    template_name = 'django_aux/delete.html'
+
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        context['extra_message'] = 'This is an extra message'
         return context

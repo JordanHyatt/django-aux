@@ -6,6 +6,7 @@ from django_aux.columns import (
     CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, 
     CollapseIterableColumn, CollapseNoniterableColumn, FixedTextColumn
 )
+from django.urls import reverse_lazy
 
 hist_values_args = [
     'first_name', 'last_name', 'salary',
@@ -77,6 +78,7 @@ class PersonTable(tables.Table):
 class SaleTable(tables.Table):
     amount = RoundNumberColumn(round_to=2, money=True)
     salary_percent = RoundNumberColumn(accessor='percent_of_million', suffix='%', orderable=False)
+    delete = FixedTextColumn(text='[Delete]', verbose_name='', linkify = lambda record: reverse_lazy('sale-delete', kwargs={'pk': record.pk}))
     class Meta:
         model = Sale
         exclude = []
