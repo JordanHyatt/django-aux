@@ -43,7 +43,7 @@ class PersonLookup(PersonBase, ExportMixin, SaveFilterMixin, FilterView):
         context.update(dict(url1='person-create', url1_text='[Create New Person]'))
         return context
 
-class PersonCreate(PersonBase, SaveFilterMixin, CreateView):
+class PersonCreate(PersonBase, RedirectPrevMixin, CreateView):
     form_class = PersonForm
     success_url = reverse_lazy('person-lookup')
     

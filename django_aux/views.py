@@ -1,7 +1,7 @@
 from django_tables2 import SingleTableMixin
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.db.models import Q
 from pandas import isna, DataFrame as DF, to_datetime
 import inspect
@@ -170,9 +170,8 @@ class RedirectPrevMixin:
     ''' This mixin will redirect user to the page they came from if 
     form successful OR if "cancel" is in post data  (Uses session data)'''
     redirect_exceptions = [] # list of paths or partial paths that should not be redirected to
-    # redirect_exceptions = [
-    #     {'path':'emp-delete', 'reverse':'emp-lookup'}
-    # ]
+    # i.e.
+    # redirect_exceptions = [('person-delete', 'person-lookup')]
 
     @property
     def form_takes_request_arg(self):
@@ -194,21 +193,22 @@ class RedirectPrevMixin:
         return kwargs
 
     def get_next_is_exception(self, next):
-        for exc in self.redirect_exceptions:
-            if exc in next:
-                return True
-        return False
+        for pattern, reverse_name  in self.redirect_exceptions:
+            if pattern in next:
+                return True, reverse_name  
+        return False, ''
 
     def get(self, request, *args, **kwargs):
         ''' Extends the get method to store where the user was prior to this page '''
-        next = self.request.META.get('HTTP_REFERER')
+        next = request.META.get('HTTP_REFERER')
         if next == None: 
             next = ''
         m1 = request.path in next # redirected from the same page, dont overrwrite next
-        m2 = self.get_next_is_exception(next)
+        m2, reverse_name = self.get_next_is_exception(next)
         if m1 or m2:
-            return super().get(request, *args, **kwargs)
-        request.session['next'] = self.request.META.get('HTTP_REFERER')
+            request.session['next'] = reverse(reverse_name)
+        else:
+            request.session['next'] = next
         return super().get(request, *args, **kwargs)
 
     def get_success_url(self):
