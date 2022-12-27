@@ -124,14 +124,9 @@ class TestRedirectPrevMixin(TestCase):
         self.assertEqual(reverse_name, '')
 
 
-    def test_get_success_url(self):
-        pass
-        # this needs work
-        # request = self.factory.get('/person-create', HTTP_REFERER='final-destination')
-        # self.middleware.process_request(request)
-        # request.session.save()
-        # pc = PersonCreate(request=request)
-        # self.assertEqual('final-detination', pc.get_success_url())
+    def test_next(self):
+        response = self.client.get('/person-create', HTTP_REFERER='final-destination')
+        self.assertEqual(response.wsgi_request.session.get('next'), 'final-destination')
 
-
-        # response = self.client.get('/person-create', HTTP_REFERER='final-destination')
+        response = self.client.get('/person-create', HTTP_REFERER='person-delete')
+        self.assertEqual(response.wsgi_request.session.get('next'), '/person-lookup')

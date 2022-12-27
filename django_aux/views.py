@@ -169,7 +169,7 @@ class SaveFormMixin:
 class RedirectPrevMixin:
     ''' This mixin will redirect user to the page they came from if 
     form successful OR if "cancel" is in post data  (Uses session data)'''
-    redirect_exceptions = [] # list of paths or partial paths that should not be redirected to
+    redirect_exceptions = [] # list of paths or partial paths that should not be redirected to and the name of the view to use instead
     # i.e.
     # redirect_exceptions = [('person-delete', 'person-lookup')]
 
