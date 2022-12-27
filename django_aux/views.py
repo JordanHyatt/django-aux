@@ -206,6 +206,7 @@ class RedirectPrevMixin:
             next = ''
         m1 = request.path in next # redirected from the same page, dont overrwrite next
         m2 = self.get_next_is_exception(next)
+        print("\n\n",m1,m2,"\n\n")
         if m1 or m2:
             return super().get(request, *args, **kwargs)
         request.session['next'] = self.request.META.get('HTTP_REFERER')
@@ -214,6 +215,7 @@ class RedirectPrevMixin:
     def get_success_url(self):
         ''' If next was stored redirect there, otherwise return super() '''
         next = self.request.session.get('next')
+        print("\n\nI AM PRINTING: \n\n",next,"\n\n")
         if next: 
             return next
         return super().get_success_url()
