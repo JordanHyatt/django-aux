@@ -6,8 +6,6 @@ from .models import *
 from .forms import *
 
 
-
-
 class PersonLookup(SaveFilterMixin, FilterView):
     model = Person
     table_class = PersonTable

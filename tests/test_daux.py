@@ -1,5 +1,6 @@
 from django.test import TestCase, RequestFactory, Client
 from django_aux.models import *
+from django_aux.views import *
 from django_aux.utils import PasswordUtils
 from .models import Person
 from .views import PersonLookup
@@ -76,3 +77,42 @@ class TestSaveFilterMixin(TestCase):
         view.setup(request)
         kwargs = view.get_filterset_kwargs(PersonFilter)
         self.assertEqual(kwargs, {})
+
+class TestRedirectPrevMixin(TestCase):
+    '''A test for the RedirectPrevMixin view mixin '''
+
+    def test_form_takes_request_arg(self):
+        ''' Test the form_takes_request_arg property method '''
+        #Create a form without request
+        class DummyFormNoReq:
+            def __init__(self):
+                pass
+        #Create a view whose form_class can point to our test forms
+        class DummyView(RedirectPrevMixin):
+            form_class = DummyFormNoReq
+        view = DummyView()
+        #The form does NOT have request in its (or its parents) constructors
+        self.assertFalse(view.form_takes_request_arg)
+        #This should not be affected by class inheritance
+        class ChildNoReq(DummyFormNoReq):
+            pass
+        DummyView.form_class = ChildNoReq
+        view = DummyView()
+        self.assertFalse(view.form_takes_request_arg)
+        #Try with request in an init
+        class DummyFormReq:
+            def __init__(self, request):
+                pass
+        DummyView.form_class = DummyFormReq
+        view = DummyView()
+        self.assertTrue(view.form_takes_request_arg)
+        #And with inheritance
+        class ChildWithReq(DummyFormReq):
+                pass
+        DummyView.form_class = ChildWithReq
+        view = DummyView()
+        self.assertTrue(view.form_takes_request_arg)
+
+    #def test_get_form_kwargs(self):
+    #   ''' Test the get_forms_kwargs method of a view using RedirectPrevMixin '''
+        

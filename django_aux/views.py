@@ -174,7 +174,6 @@ class RedirectPrevMixin:
     #     {'path':'emp-delete', 'reverse':'emp-lookup'}
     # ]
 
-
     @property
     def form_takes_request_arg(self):
         ''' Property returns True if any of the Parent classes of the views form_class take an 
@@ -193,7 +192,6 @@ class RedirectPrevMixin:
         kwargs = super().get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
-
 
     def get_next_is_exception(self, next):
         for exc in self.redirect_exceptions:
