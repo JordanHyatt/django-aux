@@ -5,24 +5,24 @@
 
 {% block content %}
 
-{% if header %}<h1> {{ header }} </h1>
+{% if header %}<h1 class="text-center"> {{ header }} </h1>
 <hr>{% endif %}
-{% if sub_header %}<h2> {{ sub_header }} </h2>
+{% if sub_header %}<h2 class="text-center"> {{ sub_header }} </h2>
 <hr>{% endif %}
 
 {% if form%}
-<h3> {{ form_header }} </h3>
+<h3 class="text-center"> {{ form_header }} </h3>
 {% crispy form %}
 {% endif %}
 {% if filter %}
-<h3> {{ filter_header }} </h3>
+<h3 class="text-center"> {{ filter_header }} </h3>
 <h4> Filter Results </h4>
 <form action="" method="get" enctype="multipart/form-data">
     {% crispy filter.form %}
 </form>
 {% endif %}
 {% if agg_table %}
-<h4>{{ agg_table_header }}</h4>
+<h4 class="text-center">{{ agg_table_header }}</h4>
 {% render_table agg_table %}
 {% endif %}
 

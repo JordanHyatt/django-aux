@@ -13,10 +13,10 @@
     <div class='text-center'>
         <h2> {{ header }} </h2>
     </div>
-    <h2> {{ subheader }} </h2>
+    <h2 class="text-center"> {{ subheader }} </h2>
 
     {% if filter %}
-        <h3> {{ filter_header }} </h3>
+        <h3 class="text-center"> {{ filter_header }} </h3>
         <h4> Filter Results </h4>
         <form action="" method="get" enctype="multipart/form-data">
             {% crispy filter.form %}
