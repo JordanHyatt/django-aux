@@ -73,8 +73,7 @@ class InlineFormsetMixin:
         context = self.get_context_data()
         form = self.get_form()
         if not form.is_valid():
-            print(form.errors)
-            return self.form_invalid(form)
+            return self.form_invalid(form, factories=context['factories'])
         fdsv = True
         for fd in context['factories']:
             if not fd['factory'].is_valid():
