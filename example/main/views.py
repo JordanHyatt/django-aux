@@ -65,9 +65,13 @@ class PersonDelete(PersonBase, RedirectPrevMixin, DeleteView):
 
 class PersonUpdate(PersonBase, RedirectPrevMixin, UpdateView):
     ''' Update view for Person instance '''
-    redirect_exceptions = ['delete']
+    redirect_exceptions = [('delete','person-lookup')]
     form_class = PersonForm
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['extra_js'] = ['main/hello.js'] 
+        return context
 
 class PersonUpdateInline(PersonBase, InlineFormsetMixin, UpdateView):
     ''' Update view for Person instance '''
