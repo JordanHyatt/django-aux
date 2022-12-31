@@ -107,3 +107,11 @@
 {% endif %}
 
 {% endblock content %}
+
+
+
+{% block extra_javascript %}
+    {% for ejs in extra_js %}
+        <script src="{% static ejs %}"></script>
+    {% endfor %}
+{% endblock %}

@@ -85,8 +85,7 @@
 </div>
 {% endif %}
 
-{% if detail_header %}<h2> {{ detail_header }} </h2>
-<hr>{% endif %}
+{% if detail_header %}<h2> {{ detail_header }} </h2> <hr>{% endif %}
 {% if object.as_html %}
 {% if show_as_html %}
 {{ object.as_html }}
@@ -94,3 +93,10 @@
 {% endif %}
 
 {% endblock content %}
+
+
+{% block extra_javascript %}
+    {% for ejs in extra_js %}
+        <script src="{% static ejs %}"></script>
+    {% endfor %}
+{% endblock %}
