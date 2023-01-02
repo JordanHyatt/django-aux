@@ -2,7 +2,7 @@ from django_tables2 import SingleTableMixin
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
-from django.db.models import Q
+from django.db.models import Q, ProtectedError
 from pandas import isna, DataFrame as DF, to_datetime
 import inspect
 from django.contrib import messages
@@ -12,6 +12,46 @@ from django_pandas.io import read_frame
 from django.contrib.auth.mixins import UserPassesTestMixin
 import plotly.express as px
 from plotly import offline
+from django.views.generic import DeleteView
+
+
+class DeleteProtectedView(DeleteView):
+    ''' Subclass of django.views.genderic.DeleteView that handles 
+    the attempted deltion of Protected FKs '''
+    protected_error_msg = "This employee is associated with data and cannot be deleted"
+
+    def get_onclick_cancel_action(self, href=None):
+        if href == None:
+            href = self.request.session['next']
+        if href:
+            return f"location.href = '{href}'"
+        else:
+            return "history.back()"
+
+    def get_protected_error_msg(self):
+        ''' Returns the error message to be displayed  '''
+        obj = self.get_object()
+        return f"{obj} is associted with exisiting data and cannot be deleted"
+
+
+    def post(self, request, *args, **kwargs):
+        #Try super but catch ProtectedError
+        try:
+            return super().post(request, *args, **kwargs)
+        except ProtectedError:
+            #When emp FKs to PartRun onDelete is set to PROTECT
+            messages.error(request, self.get_protected_error_msg())
+            http_referer = request.META.get('HTTP_REFERER')
+            if http_referer:
+                return HttpResponseRedirect(http_referer)
+            else:
+                return self.get_success_url()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['onclick_cancel_action'] = self.get_onclick_cancel_action()
+        return context
+
 
 class SaveFilterMixinNT:
     """ This Mixin Can be used to save
@@ -194,20 +234,21 @@ class RedirectPrevMixin:
     def get_next_is_exception(self, next):
         for pattern, reverse_name  in self.redirect_exceptions:
             if pattern in next:
-                return True, reverse_name  
-        return False, ''
+                return reverse_name  
+        return None
 
     def get(self, request, *args, **kwargs):
         ''' Extends the get method to store where the user was prior to this page '''
         next = request.META.get('HTTP_REFERER')
         if next == None: 
             next = ''
-        m1 = request.path in next # redirected from the same page, dont overrwrite next
-        m2, reverse_name = self.get_next_is_exception(next)
-        if m1 or m2:
-            request.session['next'] = reverse(reverse_name)
-        else:
+        same_path = request.path in next # redirected from the same page, dont overrwrite next
+        exception_reverse_name = self.get_next_is_exception(next)
+        if exception_reverse_name:
+            request.session['next'] = reverse(exception_reverse_name)
+        elif not same_path:
             request.session['next'] = next
+
         return super().get(request, *args, **kwargs)
 
     def get_success_url(self):

@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
-from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, PlotlyMixin
+from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, PlotlyMixin, DeleteProtectedView
 from main.tables import *
 from main.filters import *
 from main.models import *
@@ -52,9 +52,10 @@ class PersonCreate(PersonBase, RedirectPrevMixin, CreateView):
         context['sub_header'] = 'Person Create'
         return context
 
-class PersonDelete(PersonBase, RedirectPrevMixin, DeleteView):
+class PersonDelete(PersonBase, RedirectPrevMixin, DeleteProtectedView):
     ''' Delete view for Person object '''
     template_name = 'django_aux/delete.html'
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -113,15 +113,13 @@ class TestRedirectPrevMixin(TestCase):
     def test_get_next_is_exception(self):
         request = self.factory.get('/person-create')
         pc = PersonCreate(request=request)
-        result, reverse_name = pc.get_next_is_exception('person-delete')
-        self.assertTrue(result)
+        reverse_name = pc.get_next_is_exception('person-delete')
         self.assertEqual(reverse_name, 'person-lookup')
 
         request = self.factory.get('/person-create')
         pc = PersonCreate(request=PersonCreateWithRequest)
-        result, reverse_name = pc.get_next_is_exception('this-is-ok')
-        self.assertFalse(result)
-        self.assertEqual(reverse_name, '')
+        reverse_name = pc.get_next_is_exception('this-is-ok')
+        self.assertEqual(reverse_name, None)
 
 
     def test_next(self):

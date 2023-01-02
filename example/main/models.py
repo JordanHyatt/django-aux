@@ -145,7 +145,7 @@ class Sale(models.Model):
 
     dtg = models.DateTimeField()
     amount = models.FloatField()
-    buyer = models.ForeignKey('Person', on_delete=models.CASCADE, null=True)
+    buyer = models.ForeignKey('Person', on_delete=models.PROTECT, null=True)
     category = models.CharField(max_length=200, null=True)
     salemonth = models.ForeignKey('SaleMonth', on_delete=models.SET_NULL, null=True)
 
