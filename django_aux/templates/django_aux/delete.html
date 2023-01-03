@@ -20,11 +20,10 @@
     <b><font color='red'>This cannot be undone.</font></b>
     </p>
     <input class="btn btn-primary" name="submit" type="submit" value="Confirm">
-    {% if onclick_cancel_action %}
-        <input class="btn btn-warning" type="button" , value="Cancel" onclick="{{ onclick_cancel_action }}">
-    {% else %}
-        <input class="btn btn-warning" type="button", value="Cancel" onclick="history.back()">
-    {% endif %}
+
+    <input class="btn btn-warning" type="button" , value="Cancel" onclick="{{ onclick_cancel_action|null_default:'history.back()' }}">
+
+
 </form>
 
 {% endblock content %}

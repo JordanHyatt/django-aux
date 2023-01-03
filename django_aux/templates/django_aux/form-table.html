@@ -1,0 +1,67 @@
+{% extends extend_str %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load aux_tags %}
+
+{% block content %}
+
+    {% if header %} <h1 class="text-center"> {{ header }} </h1> <hr>{% endif %}
+    {% if sub_header %} <h2 class="text-center"> {{ sub_header }} </h2> <hr>{% endif %}
+
+    {% if filter %}
+        <h4> {{ filter_header }} </h4>
+        <h5> Filter Results </h5>
+        <form action="" method="get" enctype="multipart/form-data">
+            {% crispy filter.form %}
+        </form>
+    {% endif %}
+
+
+    <form action="{{ form_action|null_default:'' }}" method="post">{% csrf_token %}
+        {% if form %} 
+            <h4 class="text-center"> {{ form_header }} </h4> 
+            {% crispy form %}
+            <h4>{{ table_header }}</h4>
+            <button class="btn btn-primary" name="submit" type="submit"> Submit </button>
+            {% render_table table %}
+        {% elif submit_buttons %}
+            <div class="row">
+                <div id="form_card1" class="card-panel col s12">
+                    <form action="output">{% csrf_token %}
+                        {% for sb in submit_buttons %}
+                        <button class="{{ sb.class|null_default:'btn btn-primary' }}" 
+                            name="{{ sb.name }}" type="{{ sb.type|null_default:'submit' }}" value="{{ sb.value|null_default:'' }}"> 
+                            {{ sb.display }} {{ sb.desc }}
+                        </button>
+                        {% endfor %}
+                        <h4>{{ table_header }}</h4>
+                        {% render_table table %}
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <h4>{{ table_header }}</h4>
+            {% render_table table %}
+        {% endif %}
+    </form>
+
+
+{% endblock content %}
+
+
+
+{% block extra_javascript %}
+    <script language="JavaScript">
+        function toggle(source) {
+            console.log(source)
+            checkboxes = document.getElementsByName("{{ checkbox_col_name|null_default:'checked' }}")
+        for (var i in checkboxes)
+            checkboxes[i].checked = source.checked;
+            }
+    </script>
+
+    {% for ejs in extra_js %}
+        <script src="{% static ejs %}"></script>
+    {% endfor %}
+{% endblock %}

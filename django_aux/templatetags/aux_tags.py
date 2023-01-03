@@ -24,3 +24,10 @@ def has_items(container):
 def render_class_name(obj):
     ''' A custom template tag that returns the object's class' name '''
     return obj.__class__.__name__
+
+
+
+@register.filter(name='null_default')
+def null_default(val, default):
+    ''' A custom template tag that will return a default if val is null '''
+    return val if val else str(default)

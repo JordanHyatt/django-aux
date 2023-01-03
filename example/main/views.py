@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
 from django.utils.safestring import mark_safe
-from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView
+from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView, FormView
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
+from django.http import HttpResponseRedirect
 from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, PlotlyMixin, DeleteProtectedView
 from main.tables import *
 from main.filters import *
@@ -93,12 +94,69 @@ class SaleBase(MainBase):
     table_class = SaleTable
     filterset_class = SaleFilter
 
+
 class SaleLookup(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Lookup'
         context['export_csv'] = True
         return context
+
+
+class SaleLookupButtons(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
+    template_name = 'django_aux/form-table.html'
+
+    def get_submit_buttons(self):
+        return [
+            {'name':'delete', 'display':'Delete Selected Objects'},
+            {'name':'make_misc', 'display':'Change Category to Misc'},
+        ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sub_header'] = 'Sale Lookup'
+        context['export_csv'] = True
+        context['checkbox_col_name'] = 'checked_id'
+        context['submit_buttons'] = self.get_submit_buttons()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        qs = Sale.objects.filter(id__in=request.POST.getlist('checked_id'))
+        if 'delete' in request.POST:
+            qs.delete()
+            
+        if 'make_misc' in request.POST:
+            for obj in qs.exclude(category='misc'):
+                obj.category = 'misc'
+                obj.save()
+
+        return HttpResponseRedirect(reverse('sale-lookup-buttons'))
+
+
+
+class SaleLookupWithForm(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
+    template_name = 'django_aux/form-table.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sub_header'] = 'Sale Lookup'
+        context['export_csv'] = True
+        context['checkbox_col_name'] = 'checked_id'
+        context['form'] = SaleTableForm()
+        context['form_action'] = reverse('sale-lookup-handle-form')
+        return context
+
+class SaleLookupHandleForm(SaleBase, FormView):
+    form_class = SaleTableForm
+    success_url = 'sale-lookup-form'
+
+    def form_valid(self, form):
+        cd = form.cleaned_data
+        print(cd)
+        print(self.request.POST)
+        return super().form_valid(form)
+
 
 class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
     filterset_class = SalePlotlyFilter

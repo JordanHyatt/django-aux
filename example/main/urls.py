@@ -13,6 +13,9 @@ urlpatterns = [
 
 
     path("sale-lookup", SaleLookup.as_view(), name="sale-lookup"),
+    path("sale-lookup-buttons", SaleLookupButtons.as_view(), name="sale-lookup-buttons"),
+    path("sale-lookup-form", SaleLookupWithForm.as_view(), name="sale-lookup-form"),
+    path("sale-lookup-handle-form", SaleLookupHandleForm.as_view(), name="sale-lookup-handle-form"),
     path("sale-plotly", SalePlotly.as_view(), name="sale-plotly"),
     path("sale-delete/<int:pk>", SaleDelete.as_view(), name="sale-delete"),
 ]

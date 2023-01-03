@@ -3,6 +3,14 @@ from crispy_forms.layout import *
 from crispy_forms.bootstrap import *
 from django import forms
 
+class FormBase(forms.Form):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.add_input(Submit('submit', 'Submit'))
+
+
 class ModelFormBase(forms.ModelForm):
     DISABLE = []
     LIMIT_QS = []
@@ -28,3 +36,4 @@ class ModelFormBase(forms.ModelForm):
                 onclick="history.back();"
             )
         )
+

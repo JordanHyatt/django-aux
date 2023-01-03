@@ -79,9 +79,11 @@ class SaleTable(tables.Table):
     amount = RoundNumberColumn(round_to=2, money=True)
     salary_percent = RoundNumberColumn(accessor='percent_of_million', suffix='%', orderable=False)
     delete = FixedTextColumn(text='[Delete]', verbose_name='', linkify = lambda record: reverse_lazy('sale-delete', kwargs={'pk': record.pk}))
+    checked_id = tables.CheckBoxColumn(accessor='id', attrs = {"th__input": {"onclick": "toggle(this)"}})
     class Meta:
         model = Sale
         exclude = []
+        sequence = ['checked_id']
 
     
 
