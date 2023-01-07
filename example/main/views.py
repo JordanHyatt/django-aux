@@ -101,7 +101,6 @@ class SaleLookup(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Lookup'
         context['export_csv'] = True
-        context.update(dict(url1='home', url1_text='[A Link to Home Page]'))
         return context
 
 
