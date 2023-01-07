@@ -31,16 +31,6 @@
 {% endif %}
 
 <div class="row">
-    {% if export %}
-    <button type="button" class="btn">
-        <a href="{% querystring '_export'='xlsx' %}">Export Excel (1000 Row Limit)</a>
-    </button>
-    {% endif %}
-    {% if export_csv %}
-    <button type="button" class="btn">
-        <a href="{% querystring '_export'='csv' %}">Export CSV</a>
-    </button>
-    {% endif %}
     {% if url1 %}
     <h5 class='ml-4'><a href="{% url url1 %}"> {{ url1_text }} </a></h5>
     {% endif %}
@@ -59,6 +49,18 @@
     {% endif %}
     {% if furl3 %}
     <h5 class='ml-4'><a href="{{ furl3 }}"> {{ furl3_text }} </a></h5>
+    {% endif %}
+</div>
+<div class="row">
+    {% if export %}
+    <button type="button" class="btn">
+        <a href="{% querystring '_export'='xlsx' %}">Export Excel (1000 Row Limit)</a>
+    </button>
+    {% endif %}
+    {% if export_csv %}
+    <button type="button" class="btn">
+        <a href="{% querystring '_export'='csv' %}">Export CSV</a>
+    </button>
     {% endif %}
 </div>
 
