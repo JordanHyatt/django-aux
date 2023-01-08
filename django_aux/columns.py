@@ -408,6 +408,8 @@ class CollapseIterableColumn(CollapseColumnBase):
 
     def render(self, value, record):
         val = self.get_final_value(value)
+        if not val:
+            return ''
         return self.final_render(value=value, record=record, val=val)
 
     def value(self, value, record):
