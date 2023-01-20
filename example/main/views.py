@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView, DeleteView, CreateView, UpdateView, FormView
 from django_filters.views import FilterView
 from django_tables2.export.views import ExportMixin
+from django_tables2 import SingleTableMixin
 from django.http import HttpResponseRedirect
 from django_aux.views import SaveFilterMixin, RedirectPrevMixin, InlineFormsetMixin, PlotlyMixin, DeleteProtectedView
 from main.tables import *
@@ -75,17 +76,19 @@ class PersonUpdate(PersonBase, RedirectPrevMixin, UpdateView):
         context['extra_js'] = ['main/hello.js'] 
         return context
 
-class PersonUpdateInline(PersonBase, InlineFormsetMixin, UpdateView):
+class PersonUpdateInline(PersonBase, SingleTableMixin, InlineFormsetMixin, UpdateView):
     ''' Update view for Person instance '''
     template_name = 'django_aux/inline-formset.html'
     form_class = PersonForm
     form_helper = PersonHelper
     factories = [{'factory':award_factory, 'helper':PersonAwardHelper, 'header':'Awards'}]
     success_url = reverse_lazy('person-lookup')
+    table_class = PersonTable
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['add_lines_btn'] = True
+        context['table_header'] = 'Look at my awesome table!'
         return context
 
 
@@ -101,7 +104,6 @@ class SaleLookup(SaleBase, ExportMixin, SaveFilterMixin, FilterView):
         context = super().get_context_data(**kwargs)
         context['sub_header'] = 'Sale Lookup'
         context['export_csv'] = True
-        context.update(dict(url1='home', url1_text='[A Link to Home Page]'))
         return context
 
 

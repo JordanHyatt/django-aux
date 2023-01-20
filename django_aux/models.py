@@ -14,7 +14,37 @@ class ModelBase(models.Model):
         ''' Return a list of the db field names for objects of this class '''
         return [f.name for f in cls._meta.get_fields()]
 
-class CheckOverlapMixin:
+class CheckRangeMixin:
+    '''
+        This model mixin adds cleaning functionality to a model that will ensure the value of a ending attr 
+        is greater than the value of a start attr. Default will not let them be equal but can be overwritten
+    '''
+    start_attr = '' # Name of the attr that starts the range (must be overwritten)
+    end_attr = '' # Name of the attr that ends the range (must be overwritten)
+    allow_zero_diff = False
+    clean_during_save = True
+
+    def check_range(self):
+        start = self.cleaned_data.get(f'{self.start_attr}')
+        end = self.cleaned_data.get(f'{self.end_attr}')
+        if self.allow_zero_diff:
+            valid = end >= start
+        else:
+            valid = end > start        
+        if not valid:
+            raise ValidationError(f'{self.end_attr} must be larger than {self.start_attr}')
+
+    def clean(self):
+        cd = super().clean()
+        self.check_range()
+        return cd
+
+    def save(self, *args, **kwargs):
+        if self.clean_during_save:
+            self.clean()
+        super().save(*args,**kwargs)
+
+class CheckOverlapMixin(CheckRangeMixin):
     ''' 
         This mixin adds cleaning functionality to a model that will not allow a range overlap defined by two attributes.
         default behavior is to include the boundaries, but can be overwritten
