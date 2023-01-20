@@ -94,6 +94,7 @@ class PersonUpdateInline(PersonBase, SingleTableMixin, InlineFormsetMixin, Updat
         context = super().get_context_data(**kwargs)
         context['add_lines_btn'] = True
         context['table_header'] = 'Look at my awesome table!'
+        context['cancel_on_click'] = f"window.location.href='{reverse_lazy('person-create')}';"
         return context
 
 class SaleBase(MainBase):

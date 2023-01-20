@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% load render_table from django_tables2 %}
+{% load aux_tags %}
 
 {% block content %}
 {% if header %}<h1 class="text-center"> {{ header }} </h1>
@@ -33,7 +34,7 @@
             <input type="submit" name="save" value="Save" class="btn btn-primary" id="submit-save">
         </div>
         <div class="form-actions m-2">
-            <input class="btn btn-warning" name="cancel" type="button" value="Cancel" onclick="history.back()">
+            <input class="btn btn-warning" name="cancel" type="button" value="Cancel" onclick="{{ cancel_on_click|null_default:'history.back()' }}">
         </div>
     </div>
 </form>
