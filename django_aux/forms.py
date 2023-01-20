@@ -10,7 +10,6 @@ class FormBase(forms.Form):
         self.helper = FormHelper()
         self.helper.add_input(Submit('submit', 'Submit'))
 
-
 class ModelFormBase(forms.ModelForm):
     DISABLE = []
     LIMIT_QS = []

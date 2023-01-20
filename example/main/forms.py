@@ -19,7 +19,6 @@ class SaleTableForm(FormBase):
             )       
         )         
 
-
 class PersonForm(ModelFormBase):
     class Meta:
         model = Person
@@ -27,7 +26,6 @@ class PersonForm(ModelFormBase):
         widgets = {
             'adjectives': forms.CheckboxSelectMultiple
         }
-
 
 class PersonHelper(FormHelper):
     def __init__(self, *args, **kwargs):

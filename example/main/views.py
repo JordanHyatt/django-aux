@@ -76,6 +76,11 @@ class PersonUpdate(PersonBase, RedirectPrevMixin, UpdateView):
         context['extra_js'] = ['main/hello.js'] 
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['cancel_on_click'] = f"window.location.href='{reverse_lazy('person-create')}';"
+        return kwargs
+
 class PersonUpdateInline(PersonBase, SingleTableMixin, InlineFormsetMixin, UpdateView):
     ''' Update view for Person instance '''
     template_name = 'django_aux/inline-formset.html'
@@ -90,7 +95,6 @@ class PersonUpdateInline(PersonBase, SingleTableMixin, InlineFormsetMixin, Updat
         context['add_lines_btn'] = True
         context['table_header'] = 'Look at my awesome table!'
         return context
-
 
 class SaleBase(MainBase):
     model = Sale
