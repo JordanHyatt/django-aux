@@ -14,9 +14,12 @@ class FormBase(forms.Form):
 class ModelFormBase(forms.ModelForm):
     DISABLE = []
     LIMIT_QS = []
+    CANCEL_ON_CLICK = "history.back();"
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, cancel_on_click=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if cancel_on_click == None:
+            cancel_on_click = self.CANCEL_ON_CLICK
         for field in self.DISABLE:
             self.fields[field].disabled = True
         instance = kwargs.get('instance')
@@ -33,7 +36,7 @@ class ModelFormBase(forms.ModelForm):
         self.helper.add_input(
             Button(
                 'cancel', 'Cancel', css_class='btn-primary',
-                onclick="history.back();"
+                onclick=cancel_on_click,
             )
         )
 
