@@ -36,6 +36,9 @@ class PersonAward(models.Model):
     person = models.ForeignKey('Person', on_delete=models.CASCADE)
     type = models.CharField(choices=TYPE_CHOICES, max_length=20)
 
+    def __str__(self):
+        return f'{self.person} | {self.type}'
+
 class Person(models.Model):
     ''' Instance of this model represents a human being '''
     uuid = models.UUIDField(default = uuid.uuid4, editable=False)

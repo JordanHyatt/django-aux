@@ -90,19 +90,52 @@ class InlineFormsetMixin:
     factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and herder are optional
     form_helper = None
     template_name = 'django_aux/inline-formset.html'
-    addlines_url = None # set this in the view to have the addlines btn redirect here with self.object.pk as an arg
-    
-    def get_context_data(self, *args, factories=None, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        if factories == None:
-            factories = [fd.copy() for fd in self.factories]
-            for fd in factories:
-                if self.request.POST:
-                    fd['factory'] = fd['factory'](self.request.POST, instance=self.object)
-                else:
-                    fd['factory'] = fd['factory'](instance=self.object)
+
+    def get_current_extra(self):
+        extra = self.request.GET.get('extra')
+        if not extra:
+            return 1
+        extra = int(extra)
+        if extra > 10:
+            return 10
+        else:
+            return extra 
+
+    def set_extra_on_factories(self, context):
+        if self.request.method != 'GET':
+            return
+        for fd in context['factories']:
+            fd.get('factory').extra = int(self.get_current_extra())
+
+    def add_factories_to_context(self, context):
+        factories = [fd.copy() for fd in self.factories]
+        for fd in factories:
+            if self.request.POST:
+                fd['factory'] = fd['factory'](self.request.POST, instance=self.object)
+            else:
+                fd['factory'] = fd['factory'](instance=self.object)
         context['factories'] = factories
-        context['form_helper']=self.form_helper if self.form_helper else None
+
+    def add_addlines_url_to_context(self, context):
+        add_extra = self.get_current_extra() + 1
+        context['addlines_url'] = self.request.path_info + f"?extra={add_extra}"
+
+    def add_removelines_url_to_context(self, context):
+        remove_extra = self.get_current_extra() - 1
+        if remove_extra <=0:
+            remove_extra = 1
+        context['removelines_url'] = self.request.path_info + f"?extra={remove_extra}"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        self.add_factories_to_context(context)
+        self.set_extra_on_factories(context)
+        self.add_addlines_url_to_context(context)
+        self.add_removelines_url_to_context(context)
+        context['form_helper'] = self.form_helper if self.form_helper else None
+        context['add_addlines_btn'] = True
+        context['add_removelines_btn'] = True
+        context['add_cancel_btn'] = True
         return context
             
     def post(self, request, *args, **kwargs):
@@ -136,16 +169,6 @@ class InlineFormsetMixin:
     def form_invalid(self, form, factories):
         return self.render_to_response(self.get_context_data(form=form, factories=factories))
 
-    def get_success_url(self):
-        if 'addlines' in self.request.POST and self.addlines_url:
-            #user defined a redirect url for the addlines btn, default behavior sends pk as arg
-            return reverse_lazy(self.addlines_url, kwargs={'pk':self.object.pk})
-        elif 'addlines' in self.request.POST and not self.addlines_url:
-            #adding lines to form but no redirect url given. Use default behavior
-            return self.request.path_info
-        else:
-            #add lines was not clicked, use default success_url
-            return super().get_success_url()
 
 class DashFilterView(FilterView):
     ''' A view for passing filter qs to a dash app '''

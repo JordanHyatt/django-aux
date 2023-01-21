@@ -51,6 +51,7 @@ class PersonTable(tables.Table):
     salary = CollapseNoniterableColumn(accessor='salary', orderable=True)
     middle_name = CollapseNoniterableColumn(accessor='middle_name', hyperlink=True, href_attr='foo_url', orderable=True)
     adjectives = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives') # regular iterable
+    awards = CollapseIterableColumn(accessor='personaward_set.all', verbose_name='Awards') # regular iterable
     adjectives_links = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
     adjectives_dyn_labels = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
     pdict = CollapseDictColumn(

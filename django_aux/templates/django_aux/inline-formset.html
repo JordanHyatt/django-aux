@@ -25,17 +25,28 @@
     {% endif %}
     {% endfor %}
     <div class="row ml-2">
-        {% if add_lines_btn %}
         <div class="form-actions m-2">
-            <input type="submit" name="addlines" value="Add Lines" class="btn btn-primary" id="submit-addline">
+            <input type="submit" name="save" value="{{ save_btn_value|null_default:'Save' }}" class="{{ save_btn_class|null_default:'btn btn-primary' }}" id="submit-save">
         </div>
+        {% if add_addlines_btn %}
+            <div class="form-actions m-2">
+                <input  class="{{ addlines_btn_class|null_default:'btn btn-warning' }}" name="addlines" type="button" value="Add Lines"
+                    onclick="location.href = '{{ addlines_url|null_default:'#'}}'">
+            </div>
         {% endif %}
-        <div class="form-actions m-2">
-            <input type="submit" name="save" value="Save" class="btn btn-primary" id="submit-save">
-        </div>
-        <div class="form-actions m-2">
-            <input class="btn btn-warning" name="cancel" type="button" value="Cancel" onclick="{{ cancel_on_click|null_default:'history.back()' }}">
-        </div>
+        {% if add_removelines_btn %}
+            <div class="form-actions m-2">
+                <input class="{{ removelines_btn_class|null_default:'btn btn-warning' }}" name="removelines" type="button" value="Remove Lines"
+                    onclick="location.href = '{{ removelines_url|null_default:'#'}}'">
+            </div>
+        {% endif %}
+
+        {% if add_cancel_btn %}
+            <div class="form-actions m-2">
+                <input class="btn btn-danger" name="cancel" type="button" value="{{ cancel_btn_value|null_default:'Cancel' }}" 
+                onclick="{{ cancel_on_click|null_default:'history.back()' }}">
+            </div>
+        {% endif %}
     </div>
 </form>
 
@@ -47,6 +58,7 @@
 {% endblock content %}
 
 {% block extra_javascript %}
+    
     {% for ejs in extra_js %}
         <script src="{% static ejs %}"></script>
     {% endfor %}

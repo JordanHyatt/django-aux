@@ -43,6 +43,7 @@ class PersonLookup(PersonBase, ExportMixin, SaveFilterMixin, FilterView):
         context['sub_header'] = 'Person Lookup'
         context['export_csv'] = True
         context.update(dict(url1='person-create', url1_text='[Create New Person]'))
+        context.update(dict(url2='person-create-inline', url2_text='[Create New Person Inline]'))
         return context
 
 class PersonCreate(PersonBase, RedirectPrevMixin, CreateView):
@@ -94,7 +95,22 @@ class PersonUpdateInline(PersonBase, SingleTableMixin, InlineFormsetMixin, Updat
         context = super().get_context_data(**kwargs)
         context['add_lines_btn'] = True
         context['table_header'] = 'Look at my awesome table!'
-        context['cancel_on_click'] = f"window.location.href='{reverse_lazy('person-create')}';"
+        context['cancel_btn_value'] = f"Person Lookup"
+        context['cancel_on_click'] = f"window.location.href='{reverse_lazy('person-lookup')}';"
+        return context
+
+class PersonCreateInline(PersonBase, InlineFormsetMixin, CreateView):
+    template_name = 'django_aux/inline-formset.html'
+    form_class = PersonForm
+    form_helper = PersonHelper
+    factories = [{'factory':award_factory, 'helper':PersonAwardHelper, 'header':'Awards'}]
+    success_url = reverse_lazy('person-lookup')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sub_header'] = 'Person Create'
+        context['cancel_btn_value'] = f"Person Lookup"
+        context['cancel_on_click'] = f"window.location.href='{reverse_lazy('person-lookup')}';"
         return context
 
 class SaleBase(MainBase):
