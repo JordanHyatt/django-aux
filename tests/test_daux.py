@@ -12,7 +12,7 @@ from django.test.client import RequestFactory
 from django.test import Client
 from django.urls import path, reverse
 from django.contrib.sessions.middleware import SessionMiddleware
-from .utils import FakeRequest
+from .utils import *
 
 #------------Django-Aux TESTS------------
 
@@ -143,5 +143,64 @@ class TestInlineFormsetMixin(TestCase):
         self.assertEqual(ifm.get_current_extra(), 1)
         ifm.request = FakeRequest(GET = {'extra':2})
         self.assertEqual(ifm.get_current_extra(), 2)
-        ifm.request = FakeRequest(GET = {'extra':10})
-        self.assertEqual(ifm.get_current_extra(), 11)       
+        # try one that exceeds max
+        ifm.request = FakeRequest(GET = {'extra':11})
+        self.assertEqual(ifm.get_current_extra(), 10) 
+
+    def test_add_factories_to_context(self):
+        ifm = InlineFormsetMixin()
+        ifm.factories = [
+            {'factory':FakeFormsetFactory(), 'helper':None, 'header':None},
+            {'factory':FakeFormsetFactory(), 'helper':None, 'header':None},
+        ]
+        ifm.request = FakeRequest(method='GET')
+        ifm.object = None
+        context = {}
+        ifm.add_factories_to_context(context)
+        num_factories = len(context.get('factories'))
+        print(context)
+        self.assertEqual(num_factories, 2)
+
+
+    def test_set_extra_on_factories(self):
+        ifm = InlineFormsetMixin()
+        ifm.object = None
+        ifm.request = FakeRequest(GET = {'extra':2}, method='GET')
+        ifm.factories = [
+            {'factory':FakeFormsetFactory(), 'helper':None, 'header':None},
+            {'factory':FakeFormsetFactory(), 'helper':None, 'header':None},
+        ]
+        context = {}
+        ifm.add_factories_to_context(context)
+        ifm.set_extra_on_factories(context)
+        for fd in context.get('factories'):
+            self.assertEqual(fd.get('factory').extra, 2)
+
+    def test_add_addlines_url_to_context(self):
+        ifm = InlineFormsetMixin()
+        tests = (
+            {'extra':None, 'target':2},
+            {'extra':1, 'target':2},
+            {'extra':5, 'target':6},
+            {'extra':10, 'target':11},
+        )
+        for td in tests:
+            ifm.request = FakeRequest(GET = {'extra':td.get('extra')})
+            context = {}
+            ifm.add_addlines_url_to_context(context)
+            self.assertEqual(context['addlines_url'], f"?extra={td.get('target')}")
+
+
+    def test_add_removelines_url_to_context(self):
+        ifm = InlineFormsetMixin()
+        tests = (
+            {'extra':None, 'target':1},
+            {'extra':1, 'target':1},
+            {'extra':5, 'target':4},
+            {'extra':10, 'target':9},
+        )
+        for td in tests:
+            ifm.request = FakeRequest(GET = {'extra':td.get('extra')})
+            context = {}
+            ifm.add_removelines_url_to_context(context)
+            self.assertEqual(context['removelines_url'], f"?extra={td.get('target')}")

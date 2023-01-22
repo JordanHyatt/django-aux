@@ -87,7 +87,7 @@ class SaveFilterMixin(SingleTableMixin, SaveFilterMixinNT):
 
 class InlineFormsetMixin:
     ''' This mixin allows for multiple formset factories to be injected and processed in a form view '''
-    factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and herder are optional
+    factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and header are optional
     form_helper = None
     template_name = 'django_aux/inline-formset.html'
     max_extra = 10
