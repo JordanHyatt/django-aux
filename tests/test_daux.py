@@ -158,7 +158,6 @@ class TestInlineFormsetMixin(TestCase):
         context = {}
         ifm.add_factories_to_context(context)
         num_factories = len(context.get('factories'))
-        print(context)
         self.assertEqual(num_factories, 2)
 
 
