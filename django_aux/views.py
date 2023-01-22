@@ -90,14 +90,15 @@ class InlineFormsetMixin:
     factories = [] # list of dictionaries that must contain the key factory and the value of a formset factory instance, helper and herder are optional
     form_helper = None
     template_name = 'django_aux/inline-formset.html'
+    max_extra = 10
 
     def get_current_extra(self):
         extra = self.request.GET.get('extra')
         if not extra:
             return 1
         extra = int(extra)
-        if extra > 10:
-            return 10
+        if extra > self.max_extra:
+            return self.max_extra
         else:
             return extra 
 

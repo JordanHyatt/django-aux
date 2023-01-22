@@ -12,6 +12,7 @@ from django.test.client import RequestFactory
 from django.test import Client
 from django.urls import path, reverse
 from django.contrib.sessions.middleware import SessionMiddleware
+from .utils import FakeRequest
 
 #------------Django-Aux TESTS------------
 
@@ -128,3 +129,19 @@ class TestRedirectPrevMixin(TestCase):
 
         response = self.client.get('/person-create', HTTP_REFERER='person-delete')
         self.assertEqual(response.wsgi_request.session.get('next'), '/person-lookup')
+
+
+
+class TestInlineFormsetMixin(TestCase):
+    
+    def test_get_current_extra(self):
+        ifm = InlineFormsetMixin()
+        ifm.max_extra = 10
+        ifm.request = FakeRequest(GET = {'extra':None})
+        self.assertEqual(ifm.get_current_extra(), 1)
+        ifm.request = FakeRequest(GET = {'extra':1})
+        self.assertEqual(ifm.get_current_extra(), 1)
+        ifm.request = FakeRequest(GET = {'extra':2})
+        self.assertEqual(ifm.get_current_extra(), 2)
+        ifm.request = FakeRequest(GET = {'extra':10})
+        self.assertEqual(ifm.get_current_extra(), 11)       
