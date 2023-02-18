@@ -413,7 +413,6 @@ class PlotlyMixin:
         if self.aggregate_by != None: fargs.append(~Q(**{f'{self.aggregate_by}':None}))
         if self.remove_null_agg:
             fargs.append(~Q(**{self.y:None}))
-        print(fargs)
         gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(*fargs, **fkwargs).order_by(self.x)
         return gqs
 
