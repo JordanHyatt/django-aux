@@ -12,7 +12,7 @@ from main.filters import *
 from main.models import *
 from main.forms import *
 from django.db.models.functions import TruncMonth, TruncWeek
-from django.db.models import Sum, F, Q
+from django.db.models import Sum, Avg, F, Q
 
 class MainBase:
     ''' A base view for main app that implements common methods '''
@@ -202,9 +202,13 @@ class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
     }
     Y_CONFIG = {
         'total_sales' : {
-            'verbose': 'TotalSales',
+            'verbose': 'Total Sales',
             'agg_expr':  Sum('amount'),
-        }
+        },
+        'average_sales' : {
+            'verbose': 'Avg Sale Amount',
+            'agg_expr':  Avg('amount'),
+        },
     }
 
 
