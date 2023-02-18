@@ -4,7 +4,7 @@
 {% block content %}
 <h1 class="text-center"> {{ header }} </h1>
 <hr>
-<div class="content-section">
+<div class="col-flex" style="max-width:500px">
     <form method="POST">{% csrf_token %}
         <fieldset class='form-group'>
             <legend class="border-bottom mb-4">Login</legend>

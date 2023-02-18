@@ -319,6 +319,7 @@ class PlotlyMixin:
     plot_width = 1000
     plot_height = None
     max_records = 1_000_000_000
+    remove_null_agg = True # whether or not to remove null values post aggregation
 
 
     def check_qs_count(self):
@@ -392,7 +393,7 @@ class PlotlyMixin:
         """          
         agg_func = self.yd.get('agg_expr')
         akwargs = {f'{self.y}':agg_func}
-        akwargs['N'] = Count('id')
+        akwargs['N'] = Count('id', distinct=True)
         return akwargs 
 
     def get_grouped_qs(self):
@@ -410,6 +411,9 @@ class PlotlyMixin:
         fargs = [~Q(**{f'{self.x}':None})]
         if self.color != None: fargs.append(~Q(**{f'{self.color}':None}))
         if self.aggregate_by != None: fargs.append(~Q(**{f'{self.aggregate_by}':None}))
+        if self.remove_null_agg:
+            fargs.append(~Q(**{self.y:None}))
+        print(fargs)
         gqs = qs.values(*vargs, **vkwargs).annotate(**akwargs).filter(*fargs, **fkwargs).order_by(self.x)
         return gqs
 
