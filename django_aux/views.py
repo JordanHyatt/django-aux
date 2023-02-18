@@ -462,7 +462,7 @@ class PlotlyMixin:
         fig.update_layout(
             xaxis_title=self.x_verbose, yaxis_title=self.y_verbose
         )
-        return offline.plot(fig, auto_open=False, output_type="div")
+        return fig
 
 
     def get_filterset_kwargs(self, filterset_class):
