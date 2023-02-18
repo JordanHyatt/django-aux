@@ -321,7 +321,7 @@ class PlotlyMixin:
     max_records = 1_000_000_000
     remove_null_agg = True # whether or not to remove null values post aggregation
     plot_title = '' 
-
+    include_id_in_agg_choices = True
 
     def check_qs_count(self):
         """ Performs a check to see if the queryset count is greater than the max allowed records
@@ -471,6 +471,9 @@ class PlotlyMixin:
         kwargs = super().get_filterset_kwargs(filterset_class)
         x_choices = self.X_CHOICES
         agg_choices = [(None,'------')]
+        if self.include_id_in_agg_choices:
+            agg_choices.append(('id','ID'))
+            self.CHOICE_VALUES_MAP.update({'id':'id'})
         color_choices = [(None,'------')]
         if not hasattr(self, 'COLOR_CHOICES'):
             color_choices += self.X_CHOICES
