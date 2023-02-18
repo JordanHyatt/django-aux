@@ -500,7 +500,7 @@ class PlotlyMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['fig'] = self.get_fig()
+        context['fig'] = offline.plot(self.get_fig(), auto_open=False, output_type="div")
         context['plot_df'] = self.plot_df
         return context
 
