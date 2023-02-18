@@ -320,6 +320,7 @@ class PlotlyMixin:
     plot_height = None
     max_records = 1_000_000_000
     remove_null_agg = True # whether or not to remove null values post aggregation
+    plot_title = '' 
 
 
     def check_qs_count(self):
@@ -460,8 +461,9 @@ class PlotlyMixin:
         args, kwargs, plot_obj = self.get_px_args_kwargs_obj()
         fig = plot_obj(*args, **kwargs)
         fig.update_layout(
-            xaxis_title=self.x_verbose, yaxis_title=self.y_verbose
+            xaxis_title=self.x_verbose, yaxis_title=self.y_verbose,
         )
+        fig.update_layout(title_text=self.plot_title, title_x=0.5)
         return fig
 
 

@@ -187,6 +187,7 @@ class SalePlotly(SaleBase, PlotlyMixin ,SaveFilterMixin, FilterView):
     template_name = 'django_aux/standard-plotly.html'
     plot_width = 1200
     plot_height = 500
+    plot_title = 'Sales Data Explorer'
     X_CHOICES = [ ('category','Sale Category'), ('buyer', 'Buyer'), ('month', 'Month'), ('week', 'Week')]
 
 
