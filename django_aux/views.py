@@ -466,6 +466,12 @@ class PlotlyMixin:
         fig.update_layout(title_text=self.plot_title, title_x=0.5)
         return fig
 
+    def get_fig_offline(self):
+        fig = self.get_fig()
+        if not fig:
+            return None
+        else:
+            return offline.plot(fig, auto_open=False, output_type="div")
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
@@ -505,7 +511,7 @@ class PlotlyMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['fig'] = offline.plot(self.get_fig(), auto_open=False, output_type="div")
+        context['fig'] = self.get_fig_offline()
         context['plot_df'] = self.plot_df
         return context
 
