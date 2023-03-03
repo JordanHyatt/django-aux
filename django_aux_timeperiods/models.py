@@ -4,8 +4,11 @@ from django.db.models import UniqueConstraint
 import pandas as pd
 from zoneinfo import ZoneInfo
 
+
+
 class TimePeriodBase(models.Model):
     ''' Base class to hold common methods for TimePeriod models '''
+    id = models.BigAutoField(primary_key=True)
     freq_map = {'Year':'Y', 'Month':'M', 'Week':'W', 'Day':'D'}
 
     class Meta:

@@ -4,8 +4,15 @@ import pandas as pd
 from pandas import DataFrame as DF
 
 
+class GeoBase(models.Model):
+    ''' Abstract base class to set the id field to prevent migrations '''
+    id = models.BigAutoField(primary_key=True)
 
-class Country(models.Model):
+    class Meta:
+        abstract = True
+
+
+class Country(GeoBase):
     ''' A instance of this class represents a country in the world using the ISO 3166-1 standard '''
     alpha2 = models.CharField(max_length=2, null=True)
     alpha3 = models.CharField(max_length=3, unique=True)
@@ -32,7 +39,7 @@ class Country(models.Model):
         return f'{self.alpha3}'
 
 
-class Subdivision(models.Model):
+class Subdivision(GeoBase):
     ''' Represents a country dub division using the ISO 3166-2 standard '''
     country = models.ForeignKey('Country', on_delete=models.PROTECT)
     iso_code = models.CharField(max_length=10, unique=True)
