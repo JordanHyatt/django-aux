@@ -432,8 +432,8 @@ class CollapseNoniterableColumn(CollapseColumnBase):
         **kwargs (iterable, optional): keyword arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
     """   
 
-    def __init__(self, *args, hyperlink=False, href_attr=None, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, hyperlink=False, href_attr=None, orderable=True, **kwargs):
+        super().__init__(*args, orderable=orderable, **kwargs)
         self.hyperlink = hyperlink
         self.href_attr = href_attr
 

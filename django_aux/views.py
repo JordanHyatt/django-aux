@@ -18,11 +18,10 @@ from django.views.generic import DeleteView
 class DeleteProtectedView(DeleteView):
     ''' Subclass of django.views.genderic.DeleteView that handles 
     the attempted deltion of Protected FKs '''
-    protected_error_msg = "This employee is associated with data and cannot be deleted"
 
     def get_onclick_cancel_action(self, href=None):
         if href == None:
-            href = self.request.session['next']
+            href = self.request.session.get('next')
         if href:
             return f"location.href = '{href}'"
         else:
@@ -33,13 +32,11 @@ class DeleteProtectedView(DeleteView):
         obj = self.get_object()
         return f"{obj} is associted with exisiting data and cannot be deleted"
 
-
     def post(self, request, *args, **kwargs):
         #Try super but catch ProtectedError
         try:
             return super().post(request, *args, **kwargs)
         except ProtectedError:
-            #When emp FKs to PartRun onDelete is set to PROTECT
             messages.error(request, self.get_protected_error_msg())
             http_referer = request.META.get('HTTP_REFERER')
             if http_referer:

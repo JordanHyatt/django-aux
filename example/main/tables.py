@@ -48,8 +48,8 @@ class PersonTable(tables.Table):
         column_names=['history_id', 'history_user', 'adjective'],
         to_html_kwargs=to_html_kwargs, to_html_kwargs_extra=to_html_kwargs_extra,
     )
-    salary = CollapseNoniterableColumn(accessor='salary', orderable=True)
-    middle_name = CollapseNoniterableColumn(accessor='middle_name', hyperlink=True, href_attr='foo_url', orderable=True)
+    salary = CollapseNoniterableColumn(accessor='salary')
+    middle_name = CollapseNoniterableColumn(accessor='middle_name', hyperlink=True, href_attr='foo_url')
     adjectives = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives') # regular iterable
     awards = CollapseIterableColumn(accessor='personaward_set.all', verbose_name='Awards') # regular iterable
     adjectives_links = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
