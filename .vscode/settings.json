@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/jordan/anaconda3/envs/aux/bin/python"
+    "python.pythonPath": "/home/jordan/anaconda3/envs/aux/bin/python",
+    "python.analysis.extraPaths": ["C:\\Users\\jorda\\anaconda3\\envs\\aux\\Lib\\site-packages"]
 }
