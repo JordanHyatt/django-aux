@@ -59,6 +59,10 @@ class Person(models.Model):
         return d
 
     @property
+    def google_url(self):
+        return 'http://google.com'
+
+    @property
     def pjson_str(self):
         return "'{key=value}'"
     

@@ -70,6 +70,8 @@ class PersonTable(tables.Table):
     delete = tables.LinkColumn('person-delete', verbose_name='', text='[Delete]', args=[A('id')])
     update = tables.LinkColumn('person-update', verbose_name='', text='[Update]', args=[A('id')])
     update_inline = tables.LinkColumn('person-update-inline', verbose_name='', text='[Update Inline]', args=[A('id')])
+    # collapse_url = CollapseUrlColumn(accessor='google_url', label='Show Link')
+    # collapse_url2 = CollapseUrlColumn(accessor='google_url', label='Show Link', text='the google link')
     fixed_text = FixedTextColumn(text='Im a fixed label', linkify=lambda: '#', verbose_name='Fixed Text Header')
     class Meta:
         model = Person

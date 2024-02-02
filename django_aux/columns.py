@@ -165,6 +165,15 @@ class CollapseJsonColumn(CollapseColumnMixin, tables.JSONColumn):
         return self.final_render(value=value, record=record, val=val)
 
 
+class CollapseUrlColumn(CollapseColumnMixin, tables.URLColumn):
+    """ Sub-class of URLColumn with CollapseColumn functionality """
+
+    def render(self, record, value):
+        val = super().render(record, value)
+        val = f'<a href={val}>{self.text}</a>'
+        return self.final_render(value=value, record=record, val=val)
+
+
 class CollapseDictColumn(CollapseColumnBase):
     """Custom django-tables2 column that will render a dictionary in a collapsable div.
 
