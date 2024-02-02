@@ -75,17 +75,9 @@ class RoundNumberColumn(tables.Column):
         ''' Overrides default value method (that would just call render on table export) '''
         return value
       
-class CollapseColumnBase(tables.Column):
-    """ Base class for CollapseColumn, extends django-tables2 Column class
-    Args:
-        *args: arguments to be passed to djang-tables2 derived Column __init__ method
-        label (str, optional): The string to be displayed on the collapse target. Defaults to "show"
-        label_accessor (str, optional): Passed to django-tables2 Accessor object along with the cell value. 
-            Result used as collapse target label
-        label_extra (str, optional): Extra text that will be appended to the collapse target label
-        style (str, optional): css expression that will be passed to the collapasable divs style parameter
-        **kwargs: arguments to be passed to djang-tables2 derived Column __init__ method
-    """    
+class CollapseColumnMixin:
+
+
     def __init__(
         self, 
         *args, 
@@ -98,6 +90,7 @@ class CollapseColumnBase(tables.Column):
         self.label_extra = label_extra
         self.style = style
         self.nowrap = nowrap
+
 
     def get_style(self):
         ''' method returns the style to be applied to the collapsable div '''
@@ -159,6 +152,18 @@ class CollapseColumnBase(tables.Column):
             return mark_safe(rval)
         else:
             return ''  
+
+class CollapseColumnBase(CollapseColumnMixin, tables.Column):
+    """ Sub-class of tables.Column with CollapseColumn functionality """
+
+
+class CollapseJsonColumn(CollapseColumnMixin, tables.JSONColumn):
+    """ Sub-class of JSONColumn with CollapseColumn functionality """
+
+    def render(self, record, value):
+        val = super().render(record, value)
+        return self.final_render(value=value, record=record, val=val)
+
 
 class CollapseDictColumn(CollapseColumnBase):
     """Custom django-tables2 column that will render a dictionary in a collapsable div.
@@ -458,6 +463,9 @@ class CollapseNoniterableColumn(CollapseColumnBase):
 
     def value(self, value, record):
         return value
+
+
+
 
 class CollapseColumn(CollapseColumnBase):
     ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''

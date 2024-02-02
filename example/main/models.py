@@ -54,7 +54,17 @@ class Person(models.Model):
     def attr_dict(self):
         d = self.__dict__.copy()
         d.pop('_state')
+        d['uuid'] = str(d['uuid'])
+        d['name_list'] = [self.first_name, self.last_name]
         return d
+
+    @property
+    def pjson_str(self):
+        return "'{key=value}'"
+    
+    @property
+    def pjson_list(self):
+        return ['value', self.attr_dict]
 
     @property
     def full_name(self):

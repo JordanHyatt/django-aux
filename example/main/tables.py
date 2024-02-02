@@ -2,10 +2,7 @@ import django_tables2 as tables
 from django.db.models import F, Q, Sum
 from django_tables2 import A
 from main.models import *
-from django_aux.columns import (
-    CollapseColumn, RoundNumberColumn, CollapseDataFrameColumn, CollapseDictColumn, 
-    CollapseIterableColumn, CollapseNoniterableColumn, FixedTextColumn
-)
+from django_aux.columns import *
 from django.urls import reverse_lazy
 
 hist_values_args = [
@@ -54,9 +51,12 @@ class PersonTable(tables.Table):
     awards = CollapseIterableColumn(accessor='personaward_set.all', verbose_name='Awards') # regular iterable
     adjectives_links = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/links', hyperlink=True) # Iterable with links
     adjectives_dyn_labels = CollapseIterableColumn(accessor='adjectives.all', verbose_name='Adjectives W/Dyn Labels', label_accessor='last_name') # iterable with dynamic labels
+    pjson = CollapseJsonColumn(accessor='attr_dict', label_accessor='last_name') 
+    pjson_list = CollapseJsonColumn(accessor='pjson_list', label_accessor='last_name') 
+    pjson_str = CollapseJsonColumn(accessor='pjson_str', label_accessor='last_name')
     pdict = CollapseDictColumn(
         accessor='attr_dict', label_accessor='last_name', sort_by='value', ascending=False
-    ) # dict sorted by desc value
+    ) # dict sorted by desc value\
     pdict_styled = CollapseDictColumn(
         accessor='attr_dict', label_accessor='last_name', style='min-width:500px', sort_by='key', 
         to_html_kwargs = dict(
