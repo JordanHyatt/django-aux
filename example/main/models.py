@@ -1,17 +1,25 @@
-from django.db import models
+# python imports
 import uuid
 import names
 import random
-from simple_history.models import HistoricalRecords
-from django_aux.factory import FuzzyTimeDelta
+import datetime as dt
+
+# Django imports
+from django.db import models
+from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+# 3rd party django imports
 from factory.django import DjangoModelFactory
 from factory import Faker, Iterator, post_generation, LazyAttribute, SubFactory
 from factory.fuzzy import FuzzyDateTime, FuzzyInteger, FuzzyText, FuzzyFloat, FuzzyChoice
-import datetime as dt
-from django.utils import timezone
+from simple_history.models import HistoricalRecords
+
+# inner project imports
 from django_aux.models import ModelBase
 import django_aux_timeperiods as dat
-
+from django_aux.factory import FuzzyTimeDelta
 
 class Organization(models.Model):
     ''' Intance of this class represents a generic organization '''
@@ -196,3 +204,19 @@ class SaleFactory(DjangoModelFactory):
     dtg = FuzzyDateTime(timezone.now()-dt.timedelta(1000))
 
 
+
+class TaggedItem(models.Model):
+    tag = models.SlugField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    @classmethod
+    def tag_sale(cls, tag='clearance', sale=None):
+        sale = sale or Sale.objects.order_by('?').first()
+        if not sale:
+            sale = SaleFactory()
+        content_type = ContentType.objects.get_for_model(sale._meta.model)
+        cls.objects.get_or_create(
+            tag = tag, object_id=sale.pk, content_type=content_type
+        )

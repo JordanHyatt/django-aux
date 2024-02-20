@@ -1,5 +1,6 @@
 import django_tables2 as tables
 from django_tables2 import A
+from django.contrib.contenttypes.models import ContentType
 import random
 from pandas import isna, Series, DataFrame as DF
 from math import ceil
@@ -16,16 +17,16 @@ class FixedTextColumn(tables.Column):
         super().__init__(*args, empty_values=empty_values, **kwargs)
         self.text = text
 
-    def text_value(self, record, value):
+    def text_value(self, record, value, **kwargs):
         if self.text is None:
             return value
         return self.text(record) if callable(self.text) else self.text
 
-    def value(self, record, value):
-        return self.text_value(record, value)
+    def value(self, record, value, **kwargs):
+        return self.text_value(record=record, value=value, **kwargs)
 
-    def render(self, record, value):
-        return self.text_value(record, value)
+    def render(self, record, value, **kwargs):
+        return self.text_value(record=record, value=value, **kwargs)
 
 
 class CheckFkColumn(tables.Column):
@@ -36,7 +37,7 @@ class CheckFkColumn(tables.Column):
         self.psym = present_symbol
         self.asym = absent_symbol
 
-    def render(self, value, record):
+    def render(self, record, value, **kwargs):
         fk_obj = getattr(record, self.fk_attr)
         check = self.asym if fk_obj==None else self.psym
         return f'{value}{check}'
@@ -61,7 +62,7 @@ class RoundNumberColumn(tables.Column):
         self.prefix = prefix
         self.suffix = suffix
     
-    def render(self, value, record):
+    def render(self, value, **kwargs):
         val = round(value, self.round_to)
         if self.round_to <= 0:
             rstr = f'{val:,.0f}'
@@ -102,7 +103,10 @@ class CollapseColumnMixin:
             r += 'white-space: nowrap;'
         return f'"{r}"'
 
-    def get_label(self, value=None, record=None, val=None):
+    def get_default_label(self, **kwargs):
+        return self.label
+
+    def get_label(self, val, record, value, **kwargs):
         """ A method that returns the label to be used for the collapasble div
 
         Args:
@@ -116,7 +120,7 @@ class CollapseColumnMixin:
         if self.label_accessor:
             rval = A(self.label_accessor).resolve(record)
         else:
-            rval = self.label
+            rval = self.get_default_label(val=val, record=record, value=value, **kwargs)
         if value in [None, {}] or val==None:
             return ''     
         elif getattr(self, 'iterable', None):
@@ -124,7 +128,7 @@ class CollapseColumnMixin:
                 return ''            
         return str(rval) + self.label_extra
 
-    def final_render(self, value, record, val):
+    def final_render(self, val, record, value, **kwargs):
         """ The final html to be rendered in the cell of the table
 
         Args:
@@ -137,7 +141,7 @@ class CollapseColumnMixin:
         """        
 
         randnum = random.randint(1, 1_000_000_000)
-        label = self.get_label(value=value, record=record, val=val)
+        label = self.get_label(val=val, record=record, value=value, **kwargs)
         if label != '':
             rval = (
                 f'''
@@ -160,18 +164,18 @@ class CollapseColumnBase(CollapseColumnMixin, tables.Column):
 class CollapseJsonColumn(CollapseColumnMixin, tables.JSONColumn):
     """ Sub-class of JSONColumn with CollapseColumn functionality """
 
-    def render(self, record, value):
+    def render(self, record, value, **kwargs):
         val = super().render(record, value)
-        return self.final_render(value=value, record=record, val=val)
+        return self.final_render(val=val, record=record, value=value, **kwargs)
 
 
 class CollapseUrlColumn(CollapseColumnMixin, tables.URLColumn):
     """ Sub-class of URLColumn with CollapseColumn functionality """
 
-    def render(self, record, value):
-        val = super().render(record, value)
+    def render(self, record, value, **kwargs):
+        val = super().render(record, value, **kwargs)
         val = f'<a href={val}>{self.text}</a>'
-        return self.final_render(value=value, record=record, val=val)
+        return self.final_render(val=val, record=record, value=value, **kwargs)
 
 
 class CollapseDictColumn(CollapseColumnBase):
@@ -218,19 +222,26 @@ class CollapseDictColumn(CollapseColumnBase):
         self.to_html_kwargs_extra = {} if to_html_kwargs_extra==None else to_html_kwargs_extra
         self.to_html_kwargs.update(self.to_html_kwargs_extra)
         
-    def render(self, value, record):
-        val = self.get_dictionary_html(value=value)        
+    def render(self, record, value, **kwargs):
+        val = self.get_dictionary_html(record=record, value=value, **kwargs)        
         return self.final_render(value=value, record=record, val=val)
 
-    def value(self, value, record):
+    def value(self, value, **kwargs):
         return value
 
-    def get_dictionary_html(self, value):
+    def get_dictionary(self, value, **kwargs):
         if isna(value):
             value = {}        
         if type(value) != dict:
-            value = json.loads(value)
-        df = DF(Series(value), columns=['value'])
+            try:
+                value = json.loads(value)
+            except ValueError:
+                value = {}
+        return value
+
+    def get_dictionary_html(self, value, **kwargs):
+        d = self.get_dictionary(value=value, **kwargs)
+        df = DF(Series(d), columns=['value'])
         df = df.reset_index().rename(columns={'index':'key'})
         if self.sort_by:
             df = df.astype(
@@ -238,6 +249,27 @@ class CollapseDictColumn(CollapseColumnBase):
             ).sort_values(self.sort_by, ascending=self.ascending, na_position=self.na_position)
         df_html = df.to_html(**self.to_html_kwargs)
         return f'<div style={self.get_style()}>{df_html}</div>'
+
+
+class CollapseGenericForeignKey(CollapseDictColumn):
+
+    def get_default_label(self, value, **kwargs):
+        if not value:
+            return
+        return f'{value._meta.model.__name__} [{value.pk}]'
+
+    def get_dictionary(self, record, value, **kwargs):
+        if not value:
+            return 
+        model = value._meta.model
+        content_type = getattr(record, 'content_type', None) or ContentType.objects.get_for_model(model)
+        return {
+            'App Label': content_type.app_label,
+            'Model Name': model.__name__,
+            'Object PK': value.pk,
+            'Object': f'{value}'
+        } 
+
 
 class CollapseDataFrameColumn(CollapseColumnBase):
     """Custom django-tables2 column that will render a queryset as a pandas.DataFrame using the 
@@ -306,7 +338,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         self.to_html_kwargs.update(self.to_html_kwargs_extra)
         self.no_wrap=False
          
-    def get_read_frame_kwargs(self):
+    def get_read_frame_kwargs(self, **kwargs):
         """ Reuturns the kwargs to be passed to read_frame function """ 
         kwargs = {}
         if self.fieldnames:
@@ -315,7 +347,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
             kwargs['column_names'] = self.column_names
         return kwargs       
 
-    def get_queryset(self, value):
+    def get_queryset(self, value, **kwargs):
         ''' method applies user passed kwargs/args to qs methods '''
         qs = value.filter(
             *self.filter_args, **self.filter_kwargs
@@ -336,7 +368,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         qs = qs.order_by(*self.order_by_args)
         return qs if self.limit==None else qs[:self.limit]
 
-    def get_df_final(self, qs):
+    def get_df_final(self, qs, **kwargs):
         ''' Final steps to pd.DF before render or export '''
         if self.use_read_frame:
             df = read_frame(qs, **self.get_read_frame_kwargs())
@@ -346,19 +378,19 @@ class CollapseDataFrameColumn(CollapseColumnBase):
                 df.columns = self.column_names
         return df
 
-    def get_df_html(self, qs):
+    def get_df_html(self, qs, **kwargs):
         df = self.get_df_final(qs)
         return df.to_html(**self.to_html_kwargs)
 
-    def render(self, value, record):
-        qs = self.get_queryset(value)
+    def render(self, record, value, **kwargs):
+        qs = self.get_queryset(value=value, **kwargs)
         if qs.count() == 0: 
             val = None
         else:
-            val= self.get_df_html(qs)
-        return self.final_render(value=value, record=record, val=val)
+            val= self.get_df_html(qs, **kwargs)
+        return self.final_render(val=val, record=record, value=value, **kwargs)
 
-    def value(self, value, record):
+    def value(self, value, **kwargs):
         ''' Return the value used during table export '''
         qs = self.get_queryset(value)
         if qs.count() == 0:
@@ -394,21 +426,21 @@ class CollapseIterableColumn(CollapseColumnBase):
         self.order_by = order_by
         self.fkwargs = fkwargs
 
-    def get_href(self, obj):
+    def get_href(self, obj, **kwargs):
         ''' Method derives the href value to be used in hyperlinking list items '''
         if self.href_attr == None:
             return obj.get_absolute_url()
         else:
             return getattr(obj, self.href_attr)
 
-    def get_prepped_value(self, value):
+    def get_prepped_value(self, value, **kwargs):
         if self.order_by:
             value = value.order_by(self.order_by)
         if self.fkwargs:
             value = value.filter(**self.fkwargs)
         return value
 
-    def get_final_value(self, value):
+    def get_final_value(self, value, **kwargs):
         value = self.get_prepped_value(value)
         val = ''
         style = self.get_style()
@@ -420,13 +452,13 @@ class CollapseIterableColumn(CollapseColumnBase):
             val = val + f'<li style={style}>{obj_val}</li>'
         return val
 
-    def render(self, value, record):
-        val = self.get_final_value(value)
+    def render(self, record, value, **kwargs):
+        val = self.get_final_value(value=value, **kwargs)
         if not val:
             return ''
-        return self.final_render(value=value, record=record, val=val)
+        return self.final_render(val=val, record=record, value=value, **kwargs)
 
-    def value(self, value, record):
+    def value(self, value, **kwargs):
         val = self.get_prepped_value(value)
         if self.str_attr:
             alt_values = []
@@ -451,14 +483,14 @@ class CollapseNoniterableColumn(CollapseColumnBase):
         self.hyperlink = hyperlink
         self.href_attr = href_attr
 
-    def get_href(self, obj):
+    def get_href(self, obj, **kwargs):
         ''' Method derives the href value to be used in hyperlinking list items '''
         if self.href_attr == None:
             return obj.get_absolute_url()
         else:
             return getattr(obj, self.href_attr)
 
-    def get_prepped_value(self, value, record):
+    def get_prepped_value(self, record, value, **kwargs):
         if self.hyperlink:
             href = self.get_href(record)
             val = f'<a href={href}>{value}</a>'
@@ -466,11 +498,11 @@ class CollapseNoniterableColumn(CollapseColumnBase):
             val = value
         return f'<div style={self.get_style()}>{val}</div>'
 
-    def render(self, value, record):
+    def render(self, record, value, **kwargs):
         val = self.get_prepped_value(value=value, record=record)
-        return self.final_render(value=value, record=record, val=val)   
+        return self.final_render(val=val, record=record, value=value, **kwargs)   
 
-    def value(self, value, record):
+    def value(self, value, **kwargs):
         return value
 
 

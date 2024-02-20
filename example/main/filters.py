@@ -4,6 +4,23 @@ from django_aux.filters import PlotSettingsFilterMixin
 from crispy_forms.layout import *
 
 
+class TaggedItemFilter(FilterSetBase):
+    ''' A filter for Person objects '''
+    class Meta(MetaBase):
+        model = TaggedItem
+        fields = {
+            'tag': ['icontains'],
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form.helper.layout = Layout(
+            Fieldset('',
+                Row(
+                    Div('tag__icontains', css_class='ml-2 col-flex'),
+                ),
+            ),
+        ) 
+
 class PersonFilter(FilterSetBase):
     ''' A filter for Person objects '''
     class Meta(MetaBase):

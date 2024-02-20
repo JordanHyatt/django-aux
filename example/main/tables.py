@@ -5,6 +5,16 @@ from main.models import *
 from django_aux.columns import *
 from django.urls import reverse_lazy
 
+
+
+class TaggedItemTable(tables.Table):
+    content_object = CollapseGenericForeignKey()
+    class Meta:
+        model = TaggedItem
+        exclude = []
+        sequence = []
+
+
 hist_values_args = [
     'first_name', 'last_name', 'salary',
     'history_date', 'history_change_reason', 'history_type', 'history_relation_id', 'history_user_last_name',

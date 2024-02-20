@@ -32,6 +32,18 @@ class HomePageView(MainBase, TemplateView):
         return context
 
 
+class TaggedItemBase(MainBase):
+    model = TaggedItem
+    table_class = TaggedItemTable
+    filterset_class = TaggedItemFilter
+
+class TaggedItemLookup(TaggedItemBase, ExportMixin, SaveFilterMixin, FilterView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sub_header'] = 'Tagged Item Lookup'
+        return context
+
+
 class PersonBase(MainBase):
     model = Person
     table_class = PersonTable

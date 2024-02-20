@@ -19,4 +19,7 @@ urlpatterns = [
     path("sale-lookup-handle-form", SaleLookupHandleForm.as_view(), name="sale-lookup-handle-form"),
     path("sale-plotly", SalePlotly.as_view(), name="sale-plotly"),
     path("sale-delete/<int:pk>", SaleDelete.as_view(), name="sale-delete"),
+
+
+    path("tagged-item-lookup", TaggedItemLookup.as_view(), name="tagged-item-lookup"),
 ]
