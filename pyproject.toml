@@ -11,7 +11,7 @@ authors = [
     {name = "Jordan Hyatt", email = "jordan.t.hyatt@gmail.com"},
     {name = "Kevin Geidel", email = "kgeidel@gmail.com"},
 ]
-version = "0.0.82"
+version = "0.0.83"
 requires-python = ">=3.8"
 description = "Useful Mixins for Django Projects"
 readme = "README.md"
