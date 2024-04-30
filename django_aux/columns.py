@@ -409,7 +409,7 @@ class CollapseIterableColumn(CollapseColumnBase):
 
     Args:
         *args (iterable, optional): arguments to be passed to django_tables2 Column (See help(django_tables2.Column) for options)
-        order_by: (*fields, default None) Expression fed to sort_by django method. Should be comma separated fields or other order_by expressions
+        order_items_by: (*fields, default None) Expression fed to order_by django method if iterable is a queryset. Should be comma separated fields or other order_by expressions
         hyperlink: (bool, default False) If true, will attempt to linkify the elements of the iterable
         fkwargs: (**kwargs, default None) Lookup/field parameters used in a Django Quereyset filter
         href_attr: (str, default None) Should be the name of an attribute or field that contains the url for linkified values
@@ -419,7 +419,7 @@ class CollapseIterableColumn(CollapseColumnBase):
 
     def __init__(self, 
         *args, 
-        order_by = None,
+        order_items_by = None,
         hyperlink = False,
         fkwargs = None,
         href_attr = None, 
@@ -430,7 +430,7 @@ class CollapseIterableColumn(CollapseColumnBase):
         self.hyperlink = hyperlink
         self.href_attr = href_attr
         self.str_attr = str_attr
-        self.order_by = order_by
+        self.order_items_by = order_items_by
         self.fkwargs = fkwargs
 
     def get_href(self, obj, **kwargs):
@@ -441,8 +441,8 @@ class CollapseIterableColumn(CollapseColumnBase):
             return getattr(obj, self.href_attr)
 
     def get_prepped_value(self, value, **kwargs):
-        if self.order_by:
-            value = value.order_by(self.order_by)
+        if self.order_items_by and hasattr(value, 'order_by'):
+            value = value.order_by(*self.order_items_by)
         if self.fkwargs:
             value = value.filter(**self.fkwargs)
         return value
