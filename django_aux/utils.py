@@ -48,10 +48,8 @@ def df_tz_convert(df, timezone=None, format=True, format_str='%a %d %b %Y, %I:%M
     if not timezone:
         return df
     tz_obj = ZoneInfo(timezone)
-    print(tz_obj)
     dtg_cols = df.dtypes[df.dtypes.map(lambda val: isinstance(val, DatetimeTZDtype))].index
     for col in dtg_cols: 
-        print(col)
         df[col] = df[col].dt.tz_convert(tz_obj)
         if format:
             df[col] = df[col].dt.strftime(format_str)
