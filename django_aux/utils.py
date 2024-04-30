@@ -1,8 +1,11 @@
 
 from django.db import connection, ProgrammingError
+from django.conf import settings
 import string
 import random
 import logging
+from pandas.core.dtypes.dtypes import DatetimeTZDtype
+from zoneinfo import ZoneInfo
 logger = logging.getLogger(__name__)
 
 
@@ -38,6 +41,21 @@ class PasswordUtils:
             for bad in self.AMBIGUOUS_CHARS:
                 all = all.replace(bad,'')
         return ''.join(random.sample(all, N))
+
+
+def df_tz_convert(df, timezone=None, format=True, format_str='%a %d %b %Y, %I:%M%p %Z'):
+    timezone = timezone or getattr(settings, 'TIME_ZONE')
+    if not timezone:
+        return df
+    tz_obj = ZoneInfo(timezone)
+    print(tz_obj)
+    dtg_cols = df.dtypes[df.dtypes.map(lambda val: isinstance(val, DatetimeTZDtype))].index
+    for col in dtg_cols: 
+        print(col)
+        df[col] = df[col].dt.tz_convert(tz_obj)
+        if format:
+            df[col] = df[col].dt.strftime(format_str)
+    return df
 
 
 

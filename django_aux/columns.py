@@ -7,6 +7,7 @@ from math import ceil
 import json
 from django.utils.html import mark_safe
 from django_pandas.io import read_frame
+from django_aux.utils import df_tz_convert
 
 
 class FixedTextColumn(tables.Column):
@@ -295,6 +296,9 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         to_html_kwargs (dict, optional): kwargs to be passed to df.to_html method. 
             Defaults to dict(classes = ['table-bordered', 'table-striped', 'table-sm'], index=False, justify='left').
         to_html_kwargs_extra (dict, optional): kwargs to be added to to_html_kwargs. Defaults to {}.
+        timezone (str, optional): Timzone to use on tz-aware datetime columns. Defaults to settings.TIME_ZONE
+        datetime_format (bool, optional): Whether to String format datetime columns. Defaults to True
+        datetime_format_str (str, optional): What format to use on datetime columns. Defaults to %a %d %b %Y, %I:%M%p 
     """  
     def __init__(
         self, *args, 
@@ -312,12 +316,14 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         column_names = None,
         to_html_kwargs = None, 
         to_html_kwargs_extra = None, 
+        timezone = None, 
         **kwargs   
     ):                
         super().__init__(*args, **kwargs)
         self.label = label
         self.limit = limit
         self.group_by = group_by
+        self.timezone = timezone
         self.filter_kwargs = {} if filter_kwargs==None else filter_kwargs
         self.filter_args = [] if filter_args==None else filter_args
         self.annotate_kwargs = {} if annotate_kwargs==None else annotate_kwargs
@@ -376,6 +382,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
             df = DF(qs)
             if self.column_names:
                 df.columns = self.column_names
+        df = df_tz_convert(df)
         return df
 
     def get_df_html(self, qs, **kwargs):
