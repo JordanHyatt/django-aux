@@ -12,8 +12,8 @@ def has_group(user, group_name):
 @register.filter
 def has_rows(table):
     ''' A custom template tag that returns true if the django table has any entries '''
-    return True if table.rows.__len__() > 0 else False
-
+    rows = getattr(table, 'rows', [])
+    return True if len(rows) > 0 else False
 
 @register.filter
 def has_items(container):
