@@ -128,7 +128,7 @@ class CollapseColumnMixin:
             str: The collapsable div label
         """        
         if self.label_accessor:
-            rval = A(self.label_accessor).resolve(record)
+            rval = A(self.label_accessor).resolve(record, quiet=True) or self.get_default_label(val=val, record=record, value=value, **kwargs)
         else:
             rval = self.get_default_label(val=val, record=record, value=value, **kwargs)
         if value in [None, {}] or val==None:
