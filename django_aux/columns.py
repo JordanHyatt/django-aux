@@ -459,6 +459,8 @@ class CollapseIterableColumn(CollapseColumnBase):
         value = self.get_prepped_value(value)
         val = ''
         style = self.get_style()
+        if not value:
+            return ''
         for obj in value:
             obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
             if self.hyperlink:
