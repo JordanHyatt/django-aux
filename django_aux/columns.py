@@ -1,20 +1,29 @@
+# python imports
+import json, uuid
+from math import ceil
+from pandas import isna, Series, DataFrame as DF
+
+# django imports
+from django.utils.html import format_html, mark_safe
+
+# 3rd party django
 import django_tables2 as tables
 from django_tables2 import A
 from django.contrib.contenttypes.models import ContentType
-import random
-from pandas import isna, Series, DataFrame as DF
-from math import ceil
-import json
-from django.utils.html import mark_safe
+
+
+
+
+
 from django_pandas.io import read_frame
 from django_aux.utils import df_tz_convert
+
 
 
 class FixedTextColumn(tables.Column):
     ''' Mimics behavior of django_tables2.tables.Column but allows for a fixed text to be rendered '''
     def __init__(self, *args, text='', empty_values=None, **kwargs):
-        if empty_values == None:
-            empty_values = []
+        empty_values = empty_values or []
         super().__init__(*args, empty_values=empty_values, **kwargs)
         self.text = text
 
@@ -78,15 +87,15 @@ class RoundNumberColumn(tables.Column):
         return value
       
 class CollapseColumnMixin:
-
-
     def __init__(
         self, 
         *args, 
-        label='Show', label_accessor=None, label_extra='', style=None, nowrap=False, orderable=False,
+        label='Show', label_accessor=None, label_extra='', style=None, nowrap=False, 
+        empty_values=None, orderable=False,
         **kwargs   
     ):
-        super().__init__(*args, orderable=orderable, **kwargs)
+        empty_values = empty_values or []
+        super().__init__(*args, orderable=orderable, empty_values=empty_values, **kwargs)
         self.label = label
         self.label_accessor = label_accessor
         self.label_extra = label_extra
@@ -141,20 +150,19 @@ class CollapseColumnMixin:
             str: the html to be rendered in the cell of the table
         """        
 
-        randnum = random.randint(1, 1_000_000_000)
+        div_id = 'u' + str(uuid.uuid4()).replace('-','')
         label = self.get_label(val=val, record=record, value=value, **kwargs)
         if label != '':
-            rval = (
-                f'''
-                <a href="#unique{record.pk}{randnum}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    {label}
+            return format_html(
+                '''<a href="#{}" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    {}
                 </a>
-                <ul class="collapse list-styled" id="unique{record.pk}{randnum}">
-                    {val}
+                <ul class="collapse list-styled" id="{}">
+                    {}
                 </ul>
-                '''
+                ''',
+                div_id, label, div_id, mark_safe(val)
             )
-            return mark_safe(rval)
         else:
             return ''  
 
@@ -249,7 +257,7 @@ class CollapseDictColumn(CollapseColumnBase):
                 {'value':'string','key':'string'}
             ).sort_values(self.sort_by, ascending=self.ascending, na_position=self.na_position)
         df_html = df.to_html(**self.to_html_kwargs)
-        return f'<div style={self.get_style()}>{df_html}</div>'
+        return format_html('<div style={}>{}</div>', mark_safe(self.get_style()), mark_safe(df_html))
 
 
 class CollapseGenericForeignKey(CollapseDictColumn):
@@ -394,7 +402,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         if qs.count() == 0: 
             val = None
         else:
-            val= self.get_df_html(qs, **kwargs)
+            val = mark_safe(self.get_df_html(qs, **kwargs))
         return self.final_render(val=val, record=record, value=value, **kwargs)
 
     def value(self, value, **kwargs):
@@ -402,7 +410,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         qs = self.get_queryset(value)
         if qs.count() == 0:
             return None
-        return self.get_df_final(qs).to_dict()
+        return self.get_df_final(qs).to_dict(orient='records')
 
 class CollapseIterableColumn(CollapseColumnBase):
     """ Custom django-tables2 column that will render an iterable in a collapsable div.
@@ -455,8 +463,8 @@ class CollapseIterableColumn(CollapseColumnBase):
             obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
             if self.hyperlink:
                 href = self.get_href(obj)
-                obj_val = f'<a href={href}>{obj_val}</a>'
-            val = val + f'<li style={style}>{obj_val}</li>'
+                obj_val = format_html('<a href={}>{}</a>', mark_safe(href), obj_val)
+            val = val + format_html('<li style={}>{}</li>', mark_safe(style), obj_val)
         return val
 
     def render(self, record, value, **kwargs):
@@ -500,10 +508,10 @@ class CollapseNoniterableColumn(CollapseColumnBase):
     def get_prepped_value(self, record, value, **kwargs):
         if self.hyperlink:
             href = self.get_href(record)
-            val = f'<a href={href}>{value}</a>'
+            val = format_html('<a href={}>{}</a>', mark_safe(href), value)
         else:
             val = value
-        return f'<div style={self.get_style()}>{val}</div>'
+        return format_html('<div style={}>{}</div>', mark_safe(self.get_style()), val)
 
     def render(self, record, value, **kwargs):
         val = self.get_prepped_value(value=value, record=record)
