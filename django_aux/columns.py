@@ -5,6 +5,7 @@ from pandas import isna, Series, DataFrame as DF
 
 # django imports
 from django.utils.html import format_html, mark_safe
+from django.db.models import QuerySet   
 
 # 3rd party django
 import django_tables2 as tables
@@ -363,6 +364,8 @@ class CollapseDataFrameColumn(CollapseColumnBase):
 
     def get_queryset(self, value, **kwargs):
         ''' method applies user passed kwargs/args to qs methods '''
+        if not isinstance(value, QuerySet):
+            return value
         qs = value.filter(
             *self.filter_args, **self.filter_kwargs
         )
