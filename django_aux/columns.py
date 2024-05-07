@@ -402,7 +402,9 @@ class CollapseDataFrameColumn(CollapseColumnBase):
 
     def render(self, record, value, **kwargs):
         qs = self.get_queryset(value=value, **kwargs)
-        if qs.count() == 0: 
+        if not qs:
+            val = None
+        elif qs.count() == 0: 
             val = None
         else:
             val = mark_safe(self.get_df_html(qs, **kwargs))
