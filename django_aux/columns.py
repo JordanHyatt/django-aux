@@ -132,8 +132,12 @@ class CollapseColumnMixin:
             rval = A(self.label_accessor).resolve(record, quiet=True) or self.get_default_label(val=val, record=record, value=value, **kwargs)
         else:
             rval = self.get_default_label(val=val, record=record, value=value, **kwargs)
-        if value in [None, {}] or val==None:
-            return ''     
+        if hasattr(value, 'empty'): # hadle pd.DataFrame
+            vbool = bool(value.empty)
+        else:
+            vbool = bool(value)
+        if not vbool:
+            return ''
         elif getattr(self, 'iterable', None):
             if len(value)==0:
                 return ''            
