@@ -408,7 +408,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
         qs = self.get_queryset(value=value, **kwargs)
         if not qs:
             val = None
-        elif qs is None or qs.count() == 0: 
+        elif qs.count() == 0: 
             val = None
         else:
             val = mark_safe(self.get_df_html(qs, **kwargs))
@@ -417,7 +417,7 @@ class CollapseDataFrameColumn(CollapseColumnBase):
     def value(self, value, **kwargs):
         ''' Return the value used during table export '''
         qs = self.get_queryset(value)
-        if qs.count() == 0:
+        if qs is None or qs.count() == 0:
             return None
         return self.get_df_final(qs).to_dict(orient='records')
 
