@@ -4,7 +4,7 @@ from math import ceil
 from pandas import isna, Series, DataFrame as DF
 
 # django imports
-from django.utils.html import format_html, mark_safe
+from django.utils.html import format_html, mark_safe, format_html_join
 from django.db.models import QuerySet   
 
 # 3rd party django
@@ -166,7 +166,7 @@ class CollapseColumnMixin:
                     {}
                 </ul>
                 ''',
-                div_id, label, div_id, mark_safe(val)
+                div_id, label, div_id, val
             )
         else:
             return ''  
@@ -466,7 +466,7 @@ class CollapseIterableColumn(CollapseColumnBase):
 
     def get_final_value(self, value, **kwargs):
         value = self.get_prepped_value(value)
-        val = ''
+        val = mark_safe('')
         style = self.get_style()
         if not value:
             return ''
@@ -530,82 +530,6 @@ class CollapseNoniterableColumn(CollapseColumnBase):
 
     def value(self, value, **kwargs):
         return value
-
-
-
-
-class CollapseColumn(CollapseColumnBase):
-    ''' Column is meant for columns that have lots of data in each cell to make viewing cleaner'''
-
-    def __init__(
-        self, *args, hyperlink=False, href_attr=None,
-        iterable=False, str_attr=None, order_by=None, fkwargs=None, property_attr=None, dictionary=False,
-        **kwargs
-    ):  # Note on kwargs: lavel_accessor used to make dynamic labels, label_extra is a str that adds on to the returned value
-        super().__init__(*args, **kwargs)
-        self.hyperlink = hyperlink  # Attempts to linkify the elements of an iterable
-        # the attribute name to be used to pull the href value if None provided get_absolute_url will be called
-        self.href_attr = href_attr
-        self.iterable = iterable
-        self.str_attr = str_attr
-        self.order_by = order_by
-        self.fkwargs = fkwargs
-        self.property_attr = property_attr
-        self.dictionary = dictionary
-
-    def get_href(self, obj):
-        ''' Method derives the href value to be used in hyperlinking list items '''
-        if self.href_attr == None:
-            return obj.get_absolute_url()
-        else:
-            return getattr(obj, self.href_attr)
-
-    def render(self, value, record):
-        if self.property_attr:
-            value = getattr(record, self.property_attr)
-        if self.dictionary:
-            val = self.get_dictionary_val(value=value)        
-        elif self.iterable == False:
-            val = self.get_noniterable_val(value=value, record=record)
-        else: 
-            val = self.get_iterable_val(value)
-        return self.final_render(value=value, record=record, val=val)
-    
-    def get_iterable_val(self, value):
-        if self.order_by:
-            value = value.order_by(self.order_by)
-        if self.fkwargs:
-            value = value.filter(**self.fkwargs)
-        val = ''
-        style = self.get_style()
-        for obj in value:
-            obj_val = str(obj) if self.str_attr == None else getattr(obj, self.str_attr)
-            if self.hyperlink:
-                href = self.get_href(obj)
-                obj_val = f'<a href={href}>{obj_val}</a>'
-            val = val + f'<li style={style}>{obj_val}</li>'
-        return val
-
-    def get_noniterable_val(self, value, record):
-        if self.hyperlink:
-            href = self.get_href(record)
-            val = f'<a href={href}>{value}</a>'
-        else:
-            val = value
-        return f'<div style={self.get_style()}>{val}</div>'
-
-    def get_dictionary_val(self, value):
-        if isna(value):
-            value = {}        
-        if type(value) != dict:
-            value = json.loads(value)
-        df = DF(Series(value), columns=['value'])
-        df = df.reset_index().rename(columns={'index':'key'})
-        df_html = df.to_html(
-            classes = ['table-bordered', 'table-striped', 'table-sm'],
-            index=False, justify='left', header=False
-        )
-        return f'<div style={self.get_style()}>{df_html}</div>'
 
 
 def get_background(value, record, table, bound_column):
