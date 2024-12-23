@@ -72,12 +72,11 @@ class SaveFilterMixinNT:
             else:
                 return redirect(fp)
 
-    def get_filterset_kwargs(self, *args):
-        kwargs = super().get_filterset_kwargs(*args)
-        if 'clear_filter' in self.request.GET.keys():
-            return {}
-        else:
-            return kwargs
+    def get_filterset_kwargs(self, *args, **kwargs):
+        kwargs = super().get_filterset_kwargs(*args, **kwargs)
+        if 'clear_filter' in self.request.GET:
+            kwargs['data'] = {}
+        return kwargs
 
 class SaveFilterMixin(SingleTableMixin, SaveFilterMixinNT):
     ''' SaveFilterMixin Classic (for use with SingleTableMixin) '''
