@@ -319,7 +319,7 @@ class PlotlyMixin:
             vkwargs (dict): dict of keyword arguments to be passed to Queryset values method
 
         """        
-        if type(value) == dict:
+        if isinstance(value, dict):
             vkwargs.update(value)
         else:
             vargs.append(value)

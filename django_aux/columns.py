@@ -246,7 +246,7 @@ class CollapseDictColumn(CollapseColumnBase):
     def get_dictionary(self, value, **kwargs):
         if isna(value):
             value = {}        
-        if type(value) != dict:
+        if not isinstance(value, dict):
             try:
                 value = json.loads(value)
             except ValueError:
