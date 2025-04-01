@@ -86,7 +86,7 @@ class PersonTable(tables.Table):
     has_html = CollapseNoniterableColumn(accessor='has_html')
     empty_iterable = CollapseIterableColumn(accessor='not_there', empty_values=[])
     empty_df = CollapseDataFrameColumn(accessor='not_there', empty_values=[])
-    none_text = CollapseNoniterableColumn(accessor='not_there', empty_values=[])1 
+    none_text = CollapseNoniterableColumn(accessor='not_there', empty_values=[])
     empty_str = CollapseNoniterableColumn(accessor='empty_str', empty_values=[])
     class Meta:
         model = Person

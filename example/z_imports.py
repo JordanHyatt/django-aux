@@ -6,10 +6,7 @@ os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 from django.conf import settings
 
 # maksure dev apps are on path so linter doesn't freak out
-for fn in os.listdir(settings.REPOS_DIR):
-    if fn not in settings.ADD_APPS:
-        continue
-    sys.path.append(os.path.join(settings.REPOS_DIR, fn))
+sys.path.append(os.path.join(settings.DAUX_DIR))
 
 
 import pandas as pd
@@ -23,7 +20,6 @@ from django_aux.utils import *
 from django_aux.columns import *
 from django_aux_timeperiods.models import *
 from django_aux_geo.models import *
-from qs_views.models import QsView
 from request.models import Request
 import calendar
 from zoneinfo import ZoneInfo

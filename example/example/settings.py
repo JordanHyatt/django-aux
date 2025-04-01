@@ -15,15 +15,10 @@ import os, sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-REPOS_DIR = BASE_DIR.parent
-ADD_APPS = [
-    'django-aux', 
-    'django-qs-views'
-]
-for fn in os.listdir(REPOS_DIR):
-    if fn not in ADD_APPS:
-        continue
-    sys.path.append(os.path.join(REPOS_DIR, fn))
+DAUX_DIR = os.path.join(BASE_DIR.parent)
+
+sys.path.append(DAUX_DIR)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -54,7 +49,6 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'request',
     'django_aux',
-    'qs_views',
     'django_aux_timeperiods',
     'django_aux_geo',
 ]
@@ -95,7 +89,7 @@ WSGI_APPLICATION = 'example.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-name = os.getenv('DB_NAME', 'django_example')
+name = os.getenv('DB_NAME', 'daux_example')
 user = os.getenv('DB_USER', 'postgres')
 host = os.getenv('DB_HOST', 'localhost')
 password = os.getenv('DB_PASSWORD', 'postgres')

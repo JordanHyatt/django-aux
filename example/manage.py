@@ -2,7 +2,15 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
 
+daux_path = Path(__file__).resolve().parent.parent
+print(daux_path)
+print(os.path.join(daux_path,'django_aux'))
+sys.path.append(os.path.join(daux_path,'django_aux'))
+sys.path.append(os.path.join(daux_path,'django_geo'))
+sys.path.append(os.path.join(daux_path,'django_request'))
+sys.path.append(os.path.join(daux_path,'django_timeperiods'))
 
 def main():
     """Run administrative tasks."""

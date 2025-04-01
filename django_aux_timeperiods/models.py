@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Index
 import datetime as dt
 from django.db.models import UniqueConstraint
 import pandas as pd
@@ -10,9 +11,13 @@ class TimePeriodBase(models.Model):
     ''' Base class to hold common methods for TimePeriod models '''
     id = models.BigAutoField(primary_key=True)
     freq_map = {'Year':'Y', 'Month':'M', 'Week':'W', 'Day':'D'}
+    date = models.DateField(db_index=True, unique=True)
 
     class Meta:
         abstract = True
+        ordering = ['date']
+        indexes = [Index(fields=['-date'])]
+        
 
     @property
     def period(self):
@@ -92,8 +97,7 @@ class Year(TimePeriodBase):
         Instances should be initialized with year_num.  Save method 
         will derive the other attributes
     '''
-    date = models.DateField()
-    year_num = models.PositiveSmallIntegerField(unique=True)
+    year_num = models.PositiveSmallIntegerField(unique=True, db_index=True)
     is_leap_year = models.BooleanField()
 
     def set_date(self):
@@ -128,16 +132,15 @@ class Month(TimePeriodBase):
         ('Nov', 'Nov'),('Dec', 'Dec')
     )
     MONTH_NUM_CHOICES = [(i,str(i)) for i in range(1,13)]
-    date = models.DateField()
     year = models.ForeignKey('Year', on_delete=models.SET_NULL, null=True)
     year_num = models.PositiveSmallIntegerField()
     month_num = models.PositiveSmallIntegerField(choices=MONTH_NUM_CHOICES)
     name = models.CharField(max_length=10, choices=NAME_CHOICES)
     abbr = models.CharField(max_length=10, choices=NAME_CHOICES)
 
-    class Meta:
+    class Meta(TimePeriodBase.Meta):
         constraints = [UniqueConstraint(fields=['year_num', 'month_num'], name='unique_month')]
-
+        indexes = TimePeriodBase.Meta.indexes + [Index(fields=['year_num', 'month_num'])] 
 
     def set_date(self):
         ''' Method to derive the date attribute '''
@@ -173,12 +176,12 @@ class Week(TimePeriodBase):
         will derive the other attributes
     '''
     WEEK_NUM_CHOICES = [(i,str(i)) for i in range(1,54)]
-    date = models.DateField()
     year_num = models.PositiveSmallIntegerField()
     week_num = models.PositiveSmallIntegerField(choices=WEEK_NUM_CHOICES)
 
-    class Meta:
+    class Meta(TimePeriodBase.Meta):
         constraints = [UniqueConstraint(fields=['year_num', 'week_num'], name='unique_week')]
+        indexes = TimePeriodBase.Meta.indexes + [Index(fields=['year_num', 'week_num'])] 
 
     @property
     def end_dates(self):
@@ -208,7 +211,6 @@ class Week(TimePeriodBase):
     def __str__(self):
         return f'{self.year_num} W{str(self.week_num).zfill(2)}'
 
-
 class Day(TimePeriodBase):
     ''' An instance of this model represents a day in the Gregorian Calendar.
         Instances should be initialized with a date.  Save method 
@@ -216,8 +218,6 @@ class Day(TimePeriodBase):
     '''
     month = models.ForeignKey('Month', on_delete=models.SET_NULL, null=True)
     week = models.ForeignKey('Week', on_delete=models.SET_NULL, null=True)
-    date = models.DateField(unique=True)
-
 
     def set_month(self):
         ''' Method sets the year FK attribute. Creates the instance if necessary '''
