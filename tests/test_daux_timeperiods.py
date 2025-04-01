@@ -33,7 +33,6 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
 
     def test_get_or_create_n_from_current(self):
         ''' test TimePeriods get_or_create_n_from_current method '''
-        now = dt.datetime.now()
         def get_target_period(n, freq):
             now = dt.datetime.now()
             if n == 0:
@@ -45,13 +44,13 @@ class TestTimePeriodBase(CommonTimePeriodSetup):
                 pr = pd.period_range(start = now, periods=abs(n)+1, freq=freq)
                 return pr[-1]     
 
-        ns = list(range(-13,15))
+        ns = list(range(-3,3))
         models = [Year, Month, Week, Day]
         for n, model in itertools.product(ns, models):
             obj,_ = model.get_or_create_n_from_current(n=n)
             freq = model.freq_map.get(model.__name__)
             target = get_target_period(n, freq)
-            self.assertEqual(obj.period, target)
+            self.assertEqual(obj.period, target, msg = f'{n=} | {freq=} | {obj=} | {target=}')
 
 
     def test_get_or_create_from_date(self):

@@ -22,7 +22,7 @@ INSTALLED_APPS = [
 name = os.getenv('DB_NAME', 'aux_test')
 user = os.getenv('DB_USER', 'postgres')
 host = os.getenv('DB_HOST', 'localhost')
-password = os.getenv('DB_PASSWORD')
+password = os.getenv('DB_PASSWORD', 'postgres')
 port = os.getenv('DB_PORT', '5432')
 
 DATABASES = {

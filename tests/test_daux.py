@@ -77,13 +77,13 @@ class TestSaveFilterMixin(TestCase):
         view = PersonLookup()
         view.setup(request)
         kwargs = view.get_filterset_kwargs(PersonFilter)
-        self.assertNotEqual(kwargs, {})
+        self.assertNotEqual(kwargs.get('data'), {})
         request = self.factory.get('/person-lookup', {'last_name__icontains': 'hyatt', 'clear_filter': 'Clear Filter'})
         request.user = self.user
         view = PersonLookup()
         view.setup(request)
         kwargs = view.get_filterset_kwargs(PersonFilter)
-        self.assertEqual(kwargs, {})
+        self.assertEqual(kwargs.get('data'), {})
 
 class TestRedirectPrevMixin(TestCase):
     '''A test for the RedirectPrevMixin view mixin '''
