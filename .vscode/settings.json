@@ -3,5 +3,6 @@
     "python.analysis.extraPaths": [
         "C:\\Users\\jorda\\anaconda3\\envs\\aux\\Lib\\site-packages"
     ],
-    "iis.configDir": ""
+    "iis.configDir": "",
+    "esbonio.server.enabled": false
 }

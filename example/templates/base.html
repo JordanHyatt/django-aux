@@ -1,0 +1,151 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    {% load bootstrap4 %} {# imports bootstrap4 #}
+    {% bootstrap_css %} {# Embeds Bootstrap CSS #}
+    {% bootstrap_javascript jquery='full' %}
+    {% block extrahead %} {% endblock %} {# Embeds Extra Resources #}
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'example/main.css' %}">
+    <title>{% block title %} {% endblock %}</title>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-steel fixed-top">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'project/logo.jpg' %}" width="60" class="img-fluid" alt="PUT LOGO HERE">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
+                aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="#">Home</a>
+                    <a class="nav-item nav-link" href="{% url 'main-home' %}">Main</a>
+                </div>
+                <div class="navbar-nav">
+                    <ul class="nav nav-pills">
+                        {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-item nav-link" href="#">Change Password</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-item nav-link" href="#">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-item nav-link" href="#">Logout</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-item nav-link" href=#>About</a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-item nav-link" href="#">Login</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+
+    <main role="main" class="container-fluid">
+        <div class="row">
+            <div class="col-flex border-right ml-2">
+                <div class="mr-2">
+                    {% block sidebar %}{% endblock %}
+                </div>
+            </div>
+            <div class="col-9 ml-2">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content"></div>
+                    </div>
+                </div>
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script> -->
+    <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+    <script type="text/javascript" src="{% static "
+        django_tables2_column_shifter/js/django_tables2_column_shifter.min.js" %}">
+        </script>
+    <script>
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+                // open or close navbar
+                $('#sidebar').toggleClass('active');
+                // close dropdowns
+                $('.collapse.in').toggleClass('in');
+                // and also adjust aria-expanded attributes we use for the open/closed arrows
+                // in our CSS
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+        });
+    </script>
+    <script>
+        // Add the following code if you want the name of the file appear on select
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    </script>
+    <script language="JavaScript">
+        // The purose of this script is to record the x and y scroll position for every page in the site
+        // into the sessionStorage
+        function saveScroll() {
+            var key = window.location.pathname + '_yscroll' // get the path name and combine with y for a unique key
+            window.sessionStorage.setItem(key, window.scrollY) // store in session variables
+            var key = window.location.pathname + '_xscroll' // get the path name and combine with x for a unique key
+            window.sessionStorage.setItem(key, window.scrollX) // store in session variables
+        }
+        window.onscroll = saveScroll
+    </script>
+    <script>
+        // The purose of this script is to retreive the x and y scroll position of a given pathname
+        // and scroll the window to it
+        function setScroll() {
+            var key = window.location.pathname + '_yscroll' // Build the unique key for yscroll
+            y = window.sessionStorage.getItem(key) // store in session variables
+            console.log(y, '!!!')
+            var key = window.location.pathname + '_xscroll' // Build the unique key for xscroll
+            x = window.sessionStorage.getItem(key)
+            window.scrollTo(x, y)
+        }
+        $(document).ready(setScroll)
+    </script>
+    {% block extra_javascript %}{% endblock %}
+</body>
+
+</html>
