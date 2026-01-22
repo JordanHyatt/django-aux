@@ -12,12 +12,17 @@ class TimePeriodBase(models.Model):
     id = models.BigAutoField(primary_key=True)
     freq_map = {'Year':'Y', 'Month':'M', 'Week':'W', 'Day':'D'}
     date = models.DateField(db_index=True, unique=True)
+    date_end = models.DateField(db_index=True, null=True)
 
     class Meta:
         abstract = True
         ordering = ['date']
         indexes = [Index(fields=['-date'])]
         
+    @property
+    def date_end_prop(self):
+        """ Returns the period end date a property """
+        return self.period.end_time.date()
 
     @property
     def period(self):
