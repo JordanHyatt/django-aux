@@ -96,6 +96,10 @@ class TimePeriodBase(models.Model):
         else:
             return 'past'
 
+    def save(self, *args, **kwargs):
+        self.date_end = self.date_end_prop
+        return super().save(*args, **kwargs)
+
 
 class Year(TimePeriodBase):
     ''' An instance of this model represents a year in the Gregorian Calendar.
